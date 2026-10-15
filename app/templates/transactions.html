@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Transaction Ledger - Apex Bank{% endblock %}
+
+{% block content %}
+<div class="py-4 bg-light min-vh-100">
+    <div class="container">
+        <!-- Header -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+            <div>
+                <a href="{{ url_for('banking.dashboard') }}" class="text-decoration-none text-muted small">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                </a>
+                <h3 class="fw-bold text-navy-dark mb-1 mt-1">Transaction Ledger & Audit Trail</h3>
+                <p class="text-muted small mb-0">Complete cryptographically referenced records of all account operations.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('banking.transactions') }}" class="btn btn-sm {{ 'btn-navy text-white' if not filter_type else 'btn-outline-secondary' }} rounded-pill px-3">
+                    All ({{ transactions|length }})
+                </a>
+                <a href="{{ url_for('banking.transactions', type='deposit') }}" class="btn btn-sm {{ 'btn-success text-white' if filter_type == 'deposit' else 'btn-outline-secondary' }} rounded-pill px-3">
+                    Deposits
+                </a>
+                <a href="{{ url_for('banking.transactions', type='withdrawal') }}" class="btn btn-sm {{ 'btn-warning text-dark' if filter_type == 'withdrawal' else 'btn-outline-secondary' }} rounded-pill px-3">
+                    Withdrawals
+                </a>
+                <a href="{{ url_for('banking.transactions', type='transfer_out') }}" class="btn btn-sm {{ 'btn-danger text-white' if filter_type == 'transfer_out' else 'btn-outline-secondary' }} rounded-pill px-3">
+                    Outgoing
+                </a>
+                <a href="{{ url_for('banking.transactions', type='transfer_in') }}" class="btn btn-sm {{ 'btn-primary text-white' if filter_type == 'transfer_in' else 'btn-outline-secondary' }} rounded-pill px-3">
+                    Incoming
+                </a>
+            </div>
+        </div>
+
+        <!-- Ledger Table Card -->
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Reference ID</th>
+                            <th>Account</th>
+                            <th>Operation</th>
+                            <th>Description / Note</th>
+                            <th>Counterparty Ref</th>
+                            <th>Date & Time</th>
+                            <th class="text-end">Amount</th>
+                            <th class="text-end pe-4">Post-Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if transactions %}
+                            {% for t in transactions %}
+                            <tr>
+                                <td class="ps-4">
+                                    <span class="font-monospace fw-semibold small text-primary">{{ t.reference_id }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border font-monospace">{{ t.account.account_number }}</span>
+                                </td>
+                                <td>
+                                    {% if t.transaction_type == 'deposit' %}
+                                        <span class="badge bg-success-subtle text-success rounded-pill px-2 py-1">
+                                            <i class="bi bi-arrow-down-left me-1"></i>Deposit
+                                        </span>
+                                    {% elif t.transaction_type == 'withdrawal' %}
+                                        <span class="badge bg-warning-subtle text-dark rounded-pill px-2 py-1">
+                                            <i class="bi bi-arrow-up-right me-1"></i>Withdrawal
+                                        </span>
+                                    {% elif t.transaction_type == 'transfer_out' %}
+                                        <span class="badge bg-danger-subtle text-danger rounded-pill px-2 py-1">
+                                            <i class="bi bi-box-arrow-up-right me-1"></i>Transfer Out
+                                        </span>
+                                    {% elif t.transaction_type == 'transfer_in' %}
+                                        <span class="badge bg-info-subtle text-info rounded-pill px-2 py-1">
+                                            <i class="bi bi-box-arrow-in-down-left me-1"></i>Transfer In
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="fw-medium text-navy-dark">{{ t.description or 'Standard Operation' }}</td>
+                                <td class="text-muted small">
+                                    {{ t.related_account or '—' }}
+                                </td>
+                                <td class="text-muted small">
+                                    {{ t.timestamp.strftime('%Y-%m-%d %I:%M:%S %p') }}
+                                </td>
+                                <td class="text-end fw-bold {{ 'text-success' if t.transaction_type in ('deposit', 'transfer_in') else 'text-danger' }}">
+                                    {{ '+' if t.transaction_type in ('deposit', 'transfer_in') else '-' }}${{ "{:,.2f}".format(t.amount) }}
+                                </td>
+                                <td class="text-end pe-4 text-muted small fw-semibold">
+                                    ${{ "{:,.2f}".format(t.balance_after) }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center py-5 text-muted">
+                                    <i class="bi bi-folder-x fs-1 d-block mb-2 text-slate-300"></i>
+                                    No ledger entries match this criteria.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{
+  "name": "bank-management-system",
+  "version": "1.0.0",
+  "description": "Smart, Secure & Scalable Bank Management System built with Flask",
+  "scripts": {
+    "dev": "python run.py",
+    "start": "python run.py"
+  },
+  "keywords": [
+    "flask",
+    "bank-management-system",
+    "python"
+  ],
+  "author": "aregawibarambaras6-pixel",
+  "license": "MIT"
+}

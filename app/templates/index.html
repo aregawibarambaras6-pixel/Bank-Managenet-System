@@ -1,0 +1,342 @@
+{% extends "base.html" %}
+
+{% block title %}Apex Bank Management System - Home{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section text-white py-5 position-relative overflow-hidden">
+    <div class="hero-bg-glow"></div>
+    <div class="container py-lg-5 position-relative z-1">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-7">
+                <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-white bg-opacity-10 border border-white border-opacity-20 mb-3">
+                    <span class="pulse-indicator"></span>
+                    <span class="small fw-semibold text-emerald-light">University Web Application Project</span>
+                </div>
+                
+                <h1 class="display-4 fw-bold text-white mb-3 tracking-tight">
+                    Smart, Secure & Scalable <br>
+                    <span class="gradient-text">Bank Management System</span>
+                </h1>
+
+                <p class="lead text-slate-300 mb-4 pe-lg-5">
+                    A comprehensive banking solution engineered for seamless financial operations. Built with Python, Flask, SQLAlchemy, and SQLite to deliver role-based administration, instant transfers, and auditable transaction logging.
+                </p>
+
+                <div class="d-flex flex-wrap gap-3 mb-5">
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('banking.dashboard') }}" class="btn btn-emerald btn-lg px-4 rounded-pill shadow-sm">
+                            <i class="bi bi-wallet2 me-2"></i> Go to Dashboard
+                        </a>
+                        <a href="{{ url_for('banking.transactions') }}" class="btn btn-outline-light btn-lg px-4 rounded-pill">
+                            <i class="bi bi-clock-history me-2"></i> Transaction Ledger
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-emerald btn-lg px-4 rounded-pill shadow-sm">
+                            <i class="bi bi-shield-lock-fill me-2"></i> Sign In to Portal
+                        </a>
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-outline-light btn-lg px-4 rounded-pill">
+                            <i class="bi bi-person-plus me-2"></i> Open an Account
+                        </a>
+                    {% endif %}
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="row g-3 pt-3 border-top border-white border-opacity-10">
+                    <div class="col-4">
+                        <div class="stat-number fw-bold fs-3 text-emerald">3</div>
+                        <div class="stat-label small text-slate-400">User Roles</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="stat-number fw-bold fs-3 text-emerald">100%</div>
+                        <div class="stat-label small text-slate-400">ACID SQLite</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="stat-number fw-bold fs-3 text-emerald">256-bit</div>
+                        <div class="stat-label small text-slate-400">Simulated Security</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="hero-preview-card p-4 rounded-4 shadow-lg">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-cpu text-emerald fs-4"></i>
+                            <span class="fw-bold text-white">System Architecture</span>
+                        </div>
+                        <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50">Active</span>
+                    </div>
+
+                    <div class="stack-list d-flex flex-column gap-3 mb-4">
+                        <div class="stack-item p-3 rounded-3 bg-navy-card border border-navy-light d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="stack-icon-box bg-primary bg-opacity-10 text-primary">
+                                    <i class="bi bi-filetype-py fs-5"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 text-white fw-semibold">Backend Engine</h6>
+                                    <small class="text-slate-400">Python 3 & Flask Framework</small>
+                                </div>
+                            </div>
+                            <span class="badge bg-primary-subtle text-primary">WSGI</span>
+                        </div>
+
+                        <div class="stack-item p-3 rounded-3 bg-navy-card border border-navy-light d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="stack-icon-box bg-success bg-opacity-10 text-success">
+                                    <i class="bi bi-database fs-5"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 text-white fw-semibold">Database & ORM</h6>
+                                    <small class="text-slate-400">SQLite + SQLAlchemy ORM</small>
+                                </div>
+                            </div>
+                            <span class="badge bg-success-subtle text-success">Relational</span>
+                        </div>
+
+                        <div class="stack-item p-3 rounded-3 bg-navy-card border border-navy-light d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="stack-icon-box bg-info bg-opacity-10 text-info">
+                                    <i class="bi bi-bootstrap fs-5"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 text-white fw-semibold">Frontend Interface</h6>
+                                    <small class="text-slate-400">Bootstrap 5 + Custom Modern CSS</small>
+                                </div>
+                            </div>
+                            <span class="badge bg-info-subtle text-info">Responsive</span>
+                        </div>
+                    </div>
+
+                    <div class="p-3 rounded-3 bg-emerald-subtle border border-emerald-subtle text-emerald-dark small">
+                        <i class="bi bi-check-circle-fill me-1"></i>
+                        <strong>Real Banking Operational:</strong> User authentication, multi-account ledger, instant wire transfers, and manager controls are live!
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- User Roles Section -->
+<section id="roles" class="py-5 bg-light role-section">
+    <div class="container py-lg-4">
+        <div class="text-center max-w-700 mx-auto mb-5">
+            <span class="badge bg-navy text-white px-3 py-2 rounded-pill mb-2">Multi-Tier Access</span>
+            <h2 class="fw-bold text-navy-dark display-6">3 Integrated User Roles</h2>
+            <p class="text-muted">
+                Engineered with strict role-based access control (RBAC) to ensure security, segregation of duties, and frictionless banking operations.
+            </p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Role 1: Customer -->
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 role-card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="role-card-header p-4 bg-white border-bottom">
+                        <div class="role-icon-box bg-blue-subtle text-blue mb-3">
+                            <i class="bi bi-person-badge fs-3"></i>
+                        </div>
+                        <h4 class="fw-bold text-navy mb-1">Customer Portal</h4>
+                        <p class="text-muted small mb-0">Self-service digital banking interface</p>
+                    </div>
+                    <div class="card-body p-4">
+                        <ul class="list-unstyled role-feature-list d-flex flex-column gap-2 mb-4">
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i> Account Balance Inquiries</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i> Instant Deposit & Withdrawal</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i> Inter-Account Money Transfers</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i> Real-time Transaction Ledger</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i> Profile & Password Security</li>
+                        </ul>
+                        <div class="p-3 bg-light rounded-3 small text-muted border mb-3">
+                            <strong>Role Scope:</strong> Operates only on personal account data and funds.
+                        </div>
+                    </div>
+                    <div class="card-footer p-4 bg-white border-0 pt-0">
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary w-100 rounded-pill">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Customer Sign In
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Role 2: Employee -->
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 role-card border-0 shadow-sm rounded-4 overflow-hidden border-top-highlight">
+                    <div class="role-card-header p-4 bg-white border-bottom">
+                        <div class="role-icon-box bg-emerald-subtle text-emerald-dark mb-3">
+                            <i class="bi bi-briefcase fs-3"></i>
+                        </div>
+                        <h4 class="fw-bold text-navy mb-1">Employee Portal</h4>
+                        <p class="text-muted small mb-0">Staff teller & branch operations</p>
+                    </div>
+                    <div class="card-body p-4">
+                        <ul class="list-unstyled role-feature-list d-flex flex-column gap-2 mb-4">
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i> Open New Customer Accounts</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i> Process Counter Deposits & Withdrawals</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i> Search & Manage Customer Profiles</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i> Review Transaction Statements</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i> Verify Account Balances</li>
+                        </ul>
+                        <div class="p-3 bg-light rounded-3 small text-muted border mb-3">
+                            <strong>Role Scope:</strong> Executes branch-level transactions on behalf of customers.
+                        </div>
+                    </div>
+                    <div class="card-footer p-4 bg-white border-0 pt-0">
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-emerald w-100 rounded-pill text-white">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Manager Portal Sign In
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Role 3: Admin -->
+            <div class="col-lg-4 col-md-12">
+                <div class="card h-100 role-card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="role-card-header p-4 bg-white border-bottom">
+                        <div class="role-icon-box bg-purple-subtle text-purple mb-3">
+                            <i class="bi bi-shield-lock fs-3"></i>
+                        </div>
+                        <h4 class="fw-bold text-navy mb-1">Admin Portal</h4>
+                        <p class="text-muted small mb-0">Executive oversight & system control</p>
+                    </div>
+                    <div class="card-body p-4">
+                        <ul class="list-unstyled role-feature-list d-flex flex-column gap-2 mb-4">
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i> Complete System & User Oversight</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i> Manage Staff & Employee Accounts</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i> Generate Executive Audit Reports</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i> Account Freeze / Close Controls</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i> Master Transaction Audit Trails</li>
+                        </ul>
+                        <div class="p-3 bg-light rounded-3 small text-muted border mb-3">
+                            <strong>Role Scope:</strong> Highest privileges with full administrative and auditing authority.
+                        </div>
+                    </div>
+                    <div class="card-footer p-4 bg-white border-0 pt-0">
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-navy w-100 rounded-pill text-white">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Admin Portal Sign In
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Banking Services Section -->
+<section id="services" class="py-5 bg-white">
+    <div class="container py-lg-4">
+        <div class="text-center max-w-700 mx-auto mb-5">
+            <span class="badge bg-emerald-subtle text-emerald-dark px-3 py-2 rounded-pill mb-2">Core Capabilities</span>
+            <h2 class="fw-bold text-navy-dark display-6">All-In-One Banking Solution</h2>
+            <p class="text-muted">
+                Engineered with comprehensive functional modules to simulate a modern financial banking environment.
+            </p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Feature 1 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-box p-4 rounded-4 border h-100">
+                    <div class="feature-icon mb-3 bg-blue-subtle text-blue">
+                        <i class="bi bi-wallet2 fs-4"></i>
+                    </div>
+                    <h5 class="fw-bold text-navy">Account Creation & Management</h5>
+                    <p class="text-muted small mb-0">
+                        Automated unique account number generation, multiple account types, customer profile linking, and balance initialization.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-box p-4 rounded-4 border h-100">
+                    <div class="feature-icon mb-3 bg-emerald-subtle text-emerald-dark">
+                        <i class="bi bi-arrow-down-circle fs-4"></i>
+                    </div>
+                    <h5 class="fw-bold text-navy">Instant Deposits</h5>
+                    <p class="text-muted small mb-0">
+                        Secure counter and digital deposit processing with immediate balance updates and timestamped transaction logs.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-box p-4 rounded-4 border h-100">
+                    <div class="feature-icon mb-3 bg-orange-subtle text-orange">
+                        <i class="bi bi-arrow-up-circle fs-4"></i>
+                    </div>
+                    <h5 class="fw-bold text-navy">Verified Withdrawals</h5>
+                    <p class="text-muted small mb-0">
+                        Balance verification checks, overdraft protection limits, and instant receipt logging for every cash-out operation.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Feature 4 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-box p-4 rounded-4 border h-100">
+                    <div class="feature-icon mb-3 bg-purple-subtle text-purple">
+                        <i class="bi bi-arrow-left-right fs-4"></i>
+                    </div>
+                    <h5 class="fw-bold text-navy">Money Transfers</h5>
+                    <p class="text-muted small mb-0">
+                        Atomic database transactions ensuring money is safely debited from the sender and credited to the recipient without data loss.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Feature 5 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-box p-4 rounded-4 border h-100">
+                    <div class="feature-icon mb-3 bg-info-subtle text-info">
+                        <i class="bi bi-clock-history fs-4"></i>
+                    </div>
+                    <h5 class="fw-bold text-navy">Transaction History</h5>
+                    <p class="text-muted small mb-0">
+                        Comprehensive ledger tracking transaction IDs, types, amounts, sender/recipient records, and accurate timestamps.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Feature 6 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-box p-4 rounded-4 border h-100">
+                    <div class="feature-icon mb-3 bg-danger-subtle text-danger">
+                        <i class="bi bi-file-earmark-bar-graph fs-4"></i>
+                    </div>
+                    <h5 class="fw-bold text-navy">Financial Reports</h5>
+                    <p class="text-muted small mb-0">
+                        Detailed reporting for administrators and staff covering branch summaries, customer accounts, and daily transaction volumes.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Security & Specs Section -->
+<section id="security" class="py-5 bg-navy text-white">
+    <div class="container py-lg-4">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="bi bi-shield-check text-emerald fs-4"></i>
+                    <span class="text-emerald text-uppercase fw-bold small">Security & Architecture Standards</span>
+                </div>
+                <h3 class="fw-bold text-white mb-3">Engineered for Academic Excellence & Practical Security</h3>
+                <p class="text-slate-300 mb-0">
+                    This project adheres to professional software engineering patterns: separation of concerns via Flask Blueprints, password hashing with Werkzeug/Bcrypt, SQLAlchemy relational models, and CSRF token verification.
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <a href="#roles" class="btn btn-emerald btn-lg px-4 rounded-pill">
+                    <i class="bi bi-rocket-takeoff me-2"></i> Get Started
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

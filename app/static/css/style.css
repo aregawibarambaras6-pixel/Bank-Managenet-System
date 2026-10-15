@@ -1,0 +1,367 @@
+/* ==========================================================================
+   Apex Bank Management System - Custom Modern Stylesheet
+   ========================================================================== */
+
+:root {
+    --color-navy-dark: #07111e;
+    --color-navy: #0b192c;
+    --color-navy-light: #182d4a;
+    --color-navy-card: #112238;
+    --color-emerald: #10b981;
+    --color-emerald-dark: #059669;
+    --color-emerald-light: #34d399;
+    --color-slate-100: #f1f5f9;
+    --color-slate-200: #e2e8f0;
+    --color-slate-300: #cbd5e1;
+    --color-slate-400: #94a3b8;
+    --color-slate-600: #475569;
+    --color-slate-800: #1e293b;
+    --color-blue: #2563eb;
+    --color-purple: #7c3aed;
+    --color-orange: #ea580c;
+    
+    --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    
+    --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    --shadow-subtle: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    --shadow-card: 0 10px 25px -5px rgba(11, 25, 44, 0.08), 0 8px 10px -6px rgba(11, 25, 44, 0.04);
+    --shadow-hover: 0 20px 30px -10px rgba(11, 25, 44, 0.15), 0 10px 10px -5px rgba(11, 25, 44, 0.04);
+}
+
+/* Base & Typography */
+body {
+    font-family: var(--font-body);
+    color: var(--color-slate-800);
+    background-color: #fafbfc;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-wrapper {
+    flex: 1 0 auto;
+}
+
+h1, h2, h3, h4, h5, h6, .brand-title {
+    font-family: var(--font-heading);
+    letter-spacing: -0.02em;
+}
+
+/* Top bar */
+.top-bar {
+    background-color: var(--color-navy-dark);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    font-size: 0.82rem;
+}
+
+/* Main Navbar */
+.main-navbar {
+    background-color: var(--color-navy);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+}
+
+.brand-icon-wrapper {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--color-emerald), #0284c7);
+    color: #ffffff;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+}
+
+.brand-icon-wrapper-sm {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, var(--color-emerald), #0284c7);
+    color: #ffffff;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.brand-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: #ffffff;
+}
+
+.brand-subtitle {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--color-emerald-light);
+    letter-spacing: 0.12em;
+}
+
+.navbar-nav .nav-link {
+    color: var(--color-slate-300);
+    font-weight: 500;
+    font-size: 0.95rem;
+    padding: 0.5rem 1rem;
+    transition: var(--transition-smooth);
+}
+
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link.active {
+    color: #ffffff;
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, var(--color-navy-dark) 0%, var(--color-navy) 60%, #152943 100%);
+    min-height: 520px;
+}
+
+.hero-bg-glow {
+    position: absolute;
+    top: -20%;
+    right: -10%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, rgba(2, 132, 199, 0.05) 50%, transparent 70%);
+    pointer-events: none;
+}
+
+.gradient-text {
+    background: linear-gradient(135deg, #ffffff 30%, var(--color-emerald-light) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.pulse-indicator {
+    width: 8px;
+    height: 8px;
+    background-color: var(--color-emerald);
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+}
+
+.hero-preview-card {
+    background: rgba(17, 34, 56, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(12px);
+}
+
+.bg-navy-card {
+    background-color: var(--color-navy-card);
+}
+
+.border-navy-light {
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.stack-icon-box {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Custom Buttons */
+.btn-emerald {
+    background-color: var(--color-emerald);
+    border-color: var(--color-emerald);
+    color: #ffffff;
+    font-weight: 600;
+    transition: var(--transition-smooth);
+}
+
+.btn-emerald:hover {
+    background-color: var(--color-emerald-dark);
+    border-color: var(--color-emerald-dark);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(16, 185, 129, 0.35);
+}
+
+.btn-navy {
+    background-color: var(--color-navy);
+    border-color: var(--color-navy);
+    color: #ffffff;
+    font-weight: 600;
+    transition: var(--transition-smooth);
+}
+
+.btn-navy:hover {
+    background-color: var(--color-navy-dark);
+    border-color: var(--color-navy-dark);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(11, 25, 44, 0.35);
+}
+
+/* Role Cards */
+.role-card {
+    transition: var(--transition-smooth);
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--color-slate-200);
+}
+
+.role-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-hover);
+}
+
+.role-icon-box {
+    width: 54px;
+    height: 54px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.role-feature-list li {
+    font-size: 0.92rem;
+    color: var(--color-slate-600);
+}
+
+/* Feature Boxes */
+.feature-box {
+    background: #ffffff;
+    transition: var(--transition-smooth);
+    box-shadow: var(--shadow-subtle);
+}
+
+.feature-box:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-card);
+    border-color: var(--color-emerald) !important;
+}
+
+.feature-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Subtle Color Helpers */
+.bg-navy { background-color: var(--color-navy) !important; }
+.text-navy { color: var(--color-navy) !important; }
+.text-navy-dark { color: var(--color-navy-dark) !important; }
+.text-emerald { color: var(--color-emerald) !important; }
+.text-emerald-light { color: var(--color-emerald-light) !important; }
+.text-emerald-dark { color: var(--color-emerald-dark) !important; }
+
+.bg-emerald-subtle { background-color: #ecfdf5 !important; }
+.border-emerald-subtle { border-color: #a7f3d0 !important; }
+
+.bg-blue-subtle { background-color: #eff6ff !important; }
+.text-blue { color: var(--color-blue) !important; }
+
+.bg-purple-subtle { background-color: #f5f3ff !important; }
+.text-purple { color: var(--color-purple) !important; }
+
+.bg-orange-subtle { background-color: #fff7ed !important; }
+.text-orange { color: var(--color-orange) !important; }
+
+.text-slate-300 { color: var(--color-slate-300) !important; }
+.text-slate-400 { color: var(--color-slate-400) !important; }
+
+.max-w-700 {
+    max-width: 700px;
+}
+
+/* Footer */
+.footer-section {
+    background-color: var(--color-navy-dark);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.footer-links a {
+    color: var(--color-slate-400);
+    text-decoration: none;
+    transition: var(--transition-smooth);
+}
+
+.footer-links a:hover {
+    color: #ffffff;
+    padding-left: 4px;
+}
+
+/* ==========================================================================
+   Dark Backgrounds & Black Form Controls (Login & Register)
+   ========================================================================== */
+.bg-navy {
+    background-color: var(--color-navy) !important;
+}
+
+.bg-navy-dark {
+    background-color: var(--color-navy-dark) !important;
+}
+
+.bg-navy-card {
+    background-color: var(--color-navy-card) !important;
+}
+
+/* Black Inputs for Username/Email and Password */
+.login-dark-input,
+.form-control-dark {
+    background-color: #050b14 !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    font-size: 0.95rem;
+    transition: var(--transition-smooth);
+}
+
+.login-dark-input::placeholder,
+.form-control-dark::placeholder {
+    color: #64748b !important;
+    opacity: 1;
+}
+
+.login-dark-input:focus,
+.form-control-dark:focus {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: var(--color-emerald) !important;
+    box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.25) !important;
+    outline: none;
+}
+
+.input-group-text-dark {
+    background-color: #02060c !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-right: none !important;
+    color: #94a3b8 !important;
+}
+
+/* Override Browser Autofill from turning inputs white/yellow */
+.login-dark-input:-webkit-autofill,
+.login-dark-input:-webkit-autofill:hover, 
+.login-dark-input:-webkit-autofill:focus,
+.login-dark-input:-webkit-autofill:active {
+    -webkit-text-fill-color: #ffffff !important;
+    -webkit-box-shadow: 0 0 0 1000px #050b14 inset !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+

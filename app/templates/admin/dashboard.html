@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}System Administration Portal - Apex Bank{% endblock %}
+
+{% block content %}
+<div class="py-4 bg-light min-vh-100">
+    <div class="container">
+        <!-- Admin Top Banner -->
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+            <div>
+                <span class="badge bg-purple text-white px-3 py-1 rounded-pill fw-semibold mb-1" style="background-color: #7c3aed !important;">
+                    <i class="bi bi-shield-shaded me-1"></i> Executive Admin Clearance
+                </span>
+                <h3 class="fw-bold text-navy-dark mb-0">System Control & User Access Administration</h3>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill small">
+                    <i class="bi bi-shield-fill-check fs-6 text-success me-1"></i> RBAC Security Active
+                </span>
+            </div>
+        </div>
+
+        <!-- 5 Metric Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-lg-3 col-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-3 rounded-3 bg-primary-subtle text-primary">
+                            <i class="bi bi-people-fill fs-4"></i>
+                        </div>
+                        <div>
+                            <span class="text-muted small text-uppercase">Total Users</span>
+                            <h4 class="fw-bold text-navy-dark mb-0">{{ total_users }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-3 rounded-3 bg-success-subtle text-success">
+                            <i class="bi bi-person-check-fill fs-4"></i>
+                        </div>
+                        <div>
+                            <span class="text-muted small text-uppercase">Customers</span>
+                            <h4 class="fw-bold text-navy-dark mb-0">{{ total_customers }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-3 rounded-3 bg-warning-subtle text-warning">
+                            <i class="bi bi-briefcase-fill fs-4"></i>
+                        </div>
+                        <div>
+                            <span class="text-muted small text-uppercase">Managers</span>
+                            <h4 class="fw-bold text-navy-dark mb-0">{{ total_managers }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-3 rounded-3 bg-purple-subtle text-purple">
+                            <i class="bi bi-shield-lock-fill fs-4" style="color: #7c3aed;"></i>
+                        </div>
+                        <div>
+                            <span class="text-muted small text-uppercase">Administrators</span>
+                            <h4 class="fw-bold text-navy-dark mb-0" style="color: #7c3aed;">{{ total_admins }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Role Management Table -->
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
+            <div class="card-header bg-white p-4 border-bottom">
+                <div class="row align-items-center g-3">
+                    <div class="col-md-6">
+                        <h5 class="fw-bold text-navy-dark mb-1"><i class="bi bi-person-gear text-primary me-2"></i>User & Role Administration</h5>
+                        <p class="text-muted small mb-0">Segregation of duties: manage user permissions and role assignments.</p>
+                    </div>
+                    <div class="col-md-6">
+                        <form method="GET" action="{{ url_for('admin.dashboard') }}" class="d-flex gap-2">
+                            <select name="role" class="form-select rounded-pill px-3" style="max-width: 140px;" onchange="this.form.submit()">
+                                <option value="">All Roles</option>
+                                <option value="customer" {{ 'selected' if role_filter == 'customer' }}>Customer</option>
+                                <option value="manager" {{ 'selected' if role_filter == 'manager' }}>Manager</option>
+                                <option value="admin" {{ 'selected' if role_filter == 'admin' }}>Admin</option>
+                            </select>
+                            <input type="text" name="q" value="{{ search_query }}" class="form-control rounded-pill px-3" placeholder="Search user...">
+                            <button type="submit" class="btn btn-navy rounded-pill px-3 text-white">Search</button>
+                            {% if search_query or role_filter %}
+                                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary rounded-pill px-3">Clear</a>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">User ID</th>
+                            <th>Account Holder</th>
+                            <th>Username</th>
+                            <th>Email Address</th>
+                            <th>Assigned Role</th>
+                            <th>Joined</th>
+                            <th class="text-end pe-4">Role Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in users %}
+                        <tr>
+                            <td class="ps-4 font-monospace text-muted">#{{ "%04d" % u.id }}</td>
+                            <td class="fw-bold text-navy-dark">{{ u.full_name or '—' }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ u.username }}</span></td>
+                            <td class="text-muted small">{{ u.email }}</td>
+                            <td>
+                                {% if u.role == 'admin' %}
+                                    <span class="badge text-white px-3 py-1 rounded-pill" style="background-color: #7c3aed;">
+                                        <i class="bi bi-shield-lock-fill me-1"></i>ADMIN
+                                    </span>
+                                {% elif u.role == 'manager' %}
+                                    <span class="badge bg-warning text-dark px-3 py-1 rounded-pill">
+                                        <i class="bi bi-briefcase-fill me-1"></i>MANAGER
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-success-subtle text-success px-3 py-1 rounded-pill">
+                                        <i class="bi bi-person-fill me-1"></i>CUSTOMER
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="text-muted small">{{ u.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td class="text-end pe-4">
+                                <form method="POST" action="{{ url_for('admin.update_user_role', user_id=u.id) }}" class="d-inline-flex gap-2 align-items-center">
+                                    <select name="role" class="form-select form-select-sm rounded-pill" style="width: auto;">
+                                        <option value="customer" {{ 'selected' if u.role == 'customer' }}>Customer</option>
+                                        <option value="manager" {{ 'selected' if u.role == 'manager' }}>Manager</option>
+                                        <option value="admin" {{ 'selected' if u.role == 'admin' }}>Admin</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                        Update
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Master Transaction Ledger Stream -->
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
+            <div class="card-header bg-white p-4 border-bottom">
+                <h5 class="fw-bold text-navy-dark mb-0"><i class="bi bi-journal-check text-purple me-2" style="color: #7c3aed;"></i>Master System Transaction Audit Log</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Reference</th>
+                            <th>Account</th>
+                            <th>Customer</th>
+                            <th>Operation</th>
+                            <th>Amount</th>
+                            <th class="text-end pe-4">Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in transactions %}
+                        <tr>
+                            <td class="ps-4 font-monospace small text-primary">{{ t.reference_id }}</td>
+                            <td class="font-monospace small">{{ t.account.account_number }}</td>
+                            <td>{{ t.account.owner.full_name or t.account.owner.username }}</td>
+                            <td>
+                                <span class="badge {{ 'bg-success-subtle text-success' if t.transaction_type in ('deposit', 'transfer_in') else 'bg-danger-subtle text-danger' }} rounded-pill">
+                                    {{ t.transaction_type }}
+                                </span>
+                            </td>
+                            <td class="fw-bold {{ 'text-success' if t.transaction_type in ('deposit', 'transfer_in') else 'text-danger' }}">
+                                ${{ "{:,.2f}".format(t.amount) }}
+                            </td>
+                            <td class="text-end pe-4 text-muted small">{{ t.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

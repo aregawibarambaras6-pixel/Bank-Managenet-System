@@ -1,0 +1,322 @@
+{% extends "base.html" %}
+
+{% block title %}Banking Dashboard - Apex Bank{% endblock %}
+
+{% block content %}
+<div class="py-4 bg-light min-vh-100">
+    <div class="container">
+        <!-- Top Overview Banner -->
+        <div class="card border-0 shadow-sm rounded-4 bg-navy text-white mb-4 overflow-hidden position-relative">
+            <div class="hero-bg-glow"></div>
+            <div class="card-body p-4 p-lg-5 position-relative z-1">
+                <div class="row align-items-center g-4">
+                    <div class="col-lg-7">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge bg-emerald-subtle text-emerald-dark px-3 py-1 rounded-pill small">Verified Customer</span>
+                            <span class="text-slate-400 small">ID: #APEX-{{ "%05d" % current_user.id }}</span>
+                        </div>
+                        <h2 class="display-6 fw-bold mb-1">Welcome back, {{ current_user.full_name or current_user.username }}!</h2>
+                        <p class="text-slate-300 mb-0">Here is an overview of your active bank holdings and recent ledger activity.</p>
+                    </div>
+                    <div class="col-lg-5 text-lg-end">
+                        <div class="bg-white bg-opacity-10 p-3 rounded-4 border border-white border-opacity-15 d-inline-block text-start w-100 max-w-350">
+                            <span class="small text-slate-300 text-uppercase fw-semibold tracking-wider">Total Combined Balance</span>
+                            <h2 class="display-6 fw-bold text-emerald mb-2">${{ "{:,.2f}".format(total_balance) }}</h2>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-emerald rounded-pill px-3 flex-grow-1" data-bs-toggle="modal" data-bs-target="#depositModal">
+                                    <i class="bi bi-plus-circle me-1"></i> Deposit
+                                </button>
+                                <button class="btn btn-sm btn-outline-light rounded-pill px-3 flex-grow-1" data-bs-toggle="modal" data-bs-target="#transferModal">
+                                    <i class="bi bi-arrow-left-right me-1"></i> Transfer
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Accounts Grid & Actions Header -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold text-navy-dark mb-0">
+                <i class="bi bi-wallet2 text-emerald me-2"></i>My Accounts ({{ accounts|length }})
+            </h4>
+            <button class="btn btn-navy btn-sm rounded-pill px-3 text-white" data-bs-toggle="modal" data-bs-target="#newAccountModal">
+                <i class="bi bi-plus-lg me-1"></i> Open Another Account
+            </button>
+        </div>
+
+        <!-- Accounts Cards -->
+        <div class="row g-4 mb-5">
+            {% for acc in accounts %}
+            <div class="col-lg-6">
+                <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden {{ 'border-start border-4 border-emerald' if acc.account_type == 'savings' else 'border-start border-4 border-primary' }}">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <span class="badge {{ 'bg-success-subtle text-success' if acc.account_type == 'savings' else 'bg-primary-subtle text-primary' }} text-uppercase fw-semibold px-2 py-1 rounded-pill mb-1">
+                                    {{ acc.account_type }} Account
+                                </span>
+                                <h5 class="fw-bold text-navy-dark mb-0 d-flex align-items-center gap-2">
+                                    {{ acc.account_number }}
+                                    <button class="btn btn-link btn-sm p-0 text-muted" onclick="navigator.clipboard.writeText('{{ acc.account_number }}'); alert('Account number copied!');" title="Copy Account Number">
+                                        <i class="bi bi-copy"></i>
+                                    </button>
+                                </h5>
+                            </div>
+                            <span class="badge {{ 'bg-success text-white' if acc.status == 'active' else 'bg-danger text-white' }} rounded-pill px-3 py-1">
+                                {{ acc.status.upper() }}
+                            </span>
+                        </div>
+
+                        <div class="my-4">
+                            <span class="text-muted small">Available Balance</span>
+                            <h2 class="fw-bold text-navy-dark mb-0">${{ "{:,.2f}".format(acc.balance) }} <span class="fs-6 text-muted fw-normal">{{ acc.currency }}</span></h2>
+                        </div>
+
+                        <div class="d-flex gap-2 pt-3 border-top">
+                            <button class="btn btn-outline-success btn-sm rounded-pill flex-grow-1" data-bs-toggle="modal" data-bs-target="#depositModal" onclick="setSelectedAccount('{{ acc.id }}', '{{ acc.account_number }}')">
+                                <i class="bi bi-arrow-down-circle me-1"></i> Deposit
+                            </button>
+                            <button class="btn btn-outline-warning btn-sm rounded-pill flex-grow-1" data-bs-toggle="modal" data-bs-target="#withdrawModal" onclick="setSelectedAccount('{{ acc.id }}', '{{ acc.account_number }}')">
+                                <i class="bi bi-arrow-up-circle me-1"></i> Withdraw
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm rounded-pill flex-grow-1" data-bs-toggle="modal" data-bs-target="#transferModal" onclick="setSelectedAccount('{{ acc.id }}', '{{ acc.account_number }}')">
+                                <i class="bi bi-send me-1"></i> Transfer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Recent Transactions Table -->
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
+            <div class="card-header bg-white p-4 border-bottom d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-clock-history fs-4 text-emerald"></i>
+                    <h5 class="fw-bold text-navy-dark mb-0">Recent Transaction Activity</h5>
+                </div>
+                <a href="{{ url_for('banking.transactions') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                    View Full Ledger <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Reference</th>
+                            <th>Type</th>
+                            <th>Description / Counterparty</th>
+                            <th>Date & Time</th>
+                            <th class="text-end">Amount</th>
+                            <th class="text-end pe-4">Balance After</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if recent_transactions %}
+                            {% for t in recent_transactions %}
+                            <tr>
+                                <td class="ps-4">
+                                    <span class="font-monospace fw-semibold small text-muted">{{ t.reference_id }}</span>
+                                </td>
+                                <td>
+                                    {% if t.transaction_type in ('deposit', 'transfer_in') %}
+                                        <span class="badge bg-success-subtle text-success rounded-pill px-2 py-1">
+                                            <i class="bi bi-arrow-down-left me-1"></i>{{ t.transaction_type.replace('_', ' ').title() }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-danger-subtle text-danger rounded-pill px-2 py-1">
+                                            <i class="bi bi-arrow-up-right me-1"></i>{{ t.transaction_type.replace('_', ' ').title() }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="fw-medium text-navy-dark">{{ t.description or 'Banking Operation' }}</div>
+                                    {% if t.related_account %}
+                                        <small class="text-muted">Account Ref: {{ t.related_account }}</small>
+                                    {% endif %}
+                                </td>
+                                <td class="text-muted small">
+                                    {{ t.timestamp.strftime('%b %d, %Y - %I:%M %p') }}
+                                </td>
+                                <td class="text-end fw-bold {{ 'text-success' if t.transaction_type in ('deposit', 'transfer_in') else 'text-danger' }}">
+                                    {{ '+' if t.transaction_type in ('deposit', 'transfer_in') else '-' }}${{ "{:,.2f}".format(t.amount) }}
+                                </td>
+                                <td class="text-end pe-4 text-muted small">
+                                    ${{ "{:,.2f}".format(t.balance_after) }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    <i class="bi bi-inbox fs-1 d-block mb-2 text-slate-300"></i>
+                                    No transactions recorded yet. Make your first deposit or transfer above!
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= MODALS ================= -->
+
+<!-- 1. DEPOSIT MODAL -->
+<div class="modal fade" id="depositModal" tabindex="-1" aria-labelledby="depositModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header bg-navy text-white border-0">
+                <h5 class="modal-title fw-bold" id="depositModalLabel"><i class="bi bi-arrow-down-circle text-emerald me-2"></i>Deposit Funds</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('banking.deposit') }}">
+                {{ deposit_form.hidden_tag() }}
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Deposit Into Account</label>
+                        <select name="account_id" class="form-select account-selector" required>
+                            {% for acc in accounts %}
+                                <option value="{{ acc.id }}">{{ acc.account_number }} ({{ acc.account_type.title() }}) - Balance: ${{ "{:,.2f}".format(acc.balance) }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Amount ($)</label>
+                        {{ deposit_form.amount(class="form-control form-control-lg", placeholder="0.00", min="5", step="0.01") }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Description / Memo</label>
+                        {{ deposit_form.description(class="form-control", placeholder="e.g. Salary, Dividend, Cash Deposit") }}
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    {{ deposit_form.submit(class="btn btn-emerald rounded-pill px-4 text-white") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 2. WITHDRAW MODAL -->
+<div class="modal fade" id="withdrawModal" tabindex="-1" aria-labelledby="withdrawModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header bg-navy text-white border-0">
+                <h5 class="modal-title fw-bold" id="withdrawModalLabel"><i class="bi bi-arrow-up-circle text-warning me-2"></i>Withdraw Cash</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('banking.withdraw') }}">
+                {{ withdraw_form.hidden_tag() }}
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Withdraw From Account</label>
+                        <select name="account_id" class="form-select account-selector" required>
+                            {% for acc in accounts %}
+                                <option value="{{ acc.id }}">{{ acc.account_number }} ({{ acc.account_type.title() }}) - Balance: ${{ "{:,.2f}".format(acc.balance) }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Withdrawal Amount ($)</label>
+                        {{ withdraw_form.amount(class="form-control form-control-lg", placeholder="0.00", min="5", step="0.01") }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Memo / Purpose</label>
+                        {{ withdraw_form.description(class="form-control", placeholder="e.g. ATM withdrawal, rent payment") }}
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    {{ withdraw_form.submit(class="btn btn-warning rounded-pill px-4 text-dark fw-semibold") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 3. WIRE TRANSFER MODAL -->
+<div class="modal fade" id="transferModal" tabindex="-1" aria-labelledby="transferModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header bg-navy text-white border-0">
+                <h5 class="modal-title fw-bold" id="transferModalLabel"><i class="bi bi-send text-emerald me-2"></i>Inter-Account Wire Transfer</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('banking.transfer') }}">
+                {{ transfer_form.hidden_tag() }}
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">From Account</label>
+                        <select name="account_id" class="form-select account-selector" required>
+                            {% for acc in accounts %}
+                                <option value="{{ acc.id }}">{{ acc.account_number }} ({{ acc.account_type.title() }}) - Balance: ${{ "{:,.2f}".format(acc.balance) }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Recipient Account Number (10 Digits)</label>
+                        {{ transfer_form.recipient_account(class="form-control", placeholder="e.g. 4040300003") }}
+                        <small class="text-muted">Tip: Demo user Jordan's account is <code>4040300003</code></small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Transfer Amount ($)</label>
+                        {{ transfer_form.amount(class="form-control form-control-lg", placeholder="0.00", min="1", step="0.01") }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Transfer Memo</label>
+                        {{ transfer_form.description(class="form-control", placeholder="e.g. Project payment, rent, gift") }}
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    {{ transfer_form.submit(class="btn btn-emerald rounded-pill px-4 text-white") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 4. OPEN ADDITIONAL ACCOUNT MODAL -->
+<div class="modal fade" id="newAccountModal" tabindex="-1" aria-labelledby="newAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header bg-navy text-white border-0">
+                <h5 class="modal-title fw-bold" id="newAccountModalLabel"><i class="bi bi-plus-circle text-emerald me-2"></i>Open Additional Bank Account</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('banking.create_account') }}">
+                {{ new_account_form.hidden_tag() }}
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Product Type</label>
+                        {{ new_account_form.account_type(class="form-select") }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Starting Deposit ($)</label>
+                        {{ new_account_form.initial_deposit(class="form-control", placeholder="100.00", min="25") }}
+                        <small class="text-muted">Minimum opening deposit is $25.00</small>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    {{ new_account_form.submit(class="btn btn-emerald rounded-pill px-4 text-white") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function setSelectedAccount(accId, accNum) {
+    document.querySelectorAll('.account-selector').forEach(sel => {
+        sel.value = accId;
+    });
+}
+</script>
+{% endblock %}

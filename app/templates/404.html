@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found (404) - Apex Bank{% endblock %}
+
+{% block content %}
+<div class="py-5 bg-navy min-vh-75 d-flex align-items-center text-white">
+    <div class="container text-center py-5">
+        <div class="d-inline-flex p-4 rounded-circle bg-emerald bg-opacity-10 text-emerald mb-4">
+            <i class="bi bi-exclamation-triangle-fill display-3 text-emerald"></i>
+        </div>
+        <h1 class="display-3 fw-bold mb-2">404</h1>
+        <h3 class="fw-bold text-white mb-3">Page Not Found</h3>
+        <p class="text-slate-300 max-w-700 mx-auto mb-4">
+            The page or URL you requested does not exist or may have been moved. 
+            Use the quick links below to navigate to active banking portals.
+        </p>
+        <div class="d-flex justify-content-center flex-wrap gap-3">
+            <a href="{{ url_for('main.index') }}" class="btn btn-outline-light rounded-pill px-4">
+                <i class="bi bi-house me-1"></i> Return Home
+            </a>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('banking.dashboard') }}" class="btn btn-emerald rounded-pill px-4 text-white">
+                    <i class="bi bi-wallet2 me-1"></i> Go to Dashboard
+                </a>
+            {% else %}
+                <a href="{{ url_for('auth.login') }}" class="btn btn-emerald rounded-pill px-4 text-white">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Sign In to Account
+                </a>
+                <a href="{{ url_for('auth.register') }}" class="btn btn-navy-card border border-secondary border-opacity-25 rounded-pill px-4 text-white">
+                    <i class="bi bi-person-plus me-1"></i> Open an Account
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

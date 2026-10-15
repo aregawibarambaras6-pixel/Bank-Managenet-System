@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Manager Control Center - Apex Bank{% endblock %}
+
+{% block content %}
+<div class="py-4 bg-light min-vh-100">
+    <div class="container">
+        <!-- Top Stats Banner -->
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+            <div>
+                <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-semibold mb-1">
+                    <i class="bi bi-shield-check me-1"></i> Management Clearance Level
+                </span>
+                <h3 class="fw-bold text-navy-dark mb-0">Apex Bank Operations & Administration</h3>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill small">
+                    <i class="bi bi-circle-fill fs-6 text-success me-1"></i> Core Banking Engine Online
+                </span>
+            </div>
+        </div>
+
+        <!-- 4 Metric Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3 col-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-3 rounded-3 bg-primary-subtle text-primary">
+                            <i class="bi bi-people-fill fs-4"></i>
+                        </div>
+                        <div>
+                            <span class="text-muted small text-uppercase">Total Customers</span>
+                            <h4 class="fw-bold text-navy-dark mb-0">{{ total_customers }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-3 rounded-3 bg-info-subtle text-info">
+                            <i class="bi bi-credit-card-2-front fs-4"></i>
+                        </div>
+                        <div>
+                            <span class="text-muted small text-uppercase">Active Accounts</span>
+                            <h4 class="fw-bold text-navy-dark mb-0">{{ total_accounts }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-3 rounded-3 bg-success-subtle text-success">
+                            <i class="bi bi-cash-stack fs-4"></i>
+                        </div>
+                        <div>
+                            <span class="text-muted small text-uppercase">Total Bank Reserves</span>
+                            <h4 class="fw-bold text-success mb-0">${{ "{:,.2f}".format(total_bank_reserves) }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-3 rounded-3 bg-secondary-subtle text-secondary">
+                            <i class="bi bi-database-check fs-4"></i>
+                        </div>
+                        <div>
+                            <span class="text-muted small text-uppercase">ACID Engine</span>
+                            <h4 class="fw-bold text-navy-dark mb-0">SQLite 3</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Accounts Management Section -->
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
+            <div class="card-header bg-white p-4 border-bottom">
+                <div class="row align-items-center g-3">
+                    <div class="col-md-6">
+                        <h5 class="fw-bold text-navy-dark mb-1"><i class="bi bi-card-checklist text-primary me-2"></i>Account Oversight & Freeze Control</h5>
+                        <p class="text-muted small mb-0">Monitor customer accounts, enforce risk controls, and toggle account statuses.</p>
+                    </div>
+                    <div class="col-md-6">
+                        <form method="GET" action="{{ url_for('manager.dashboard') }}" class="d-flex gap-2">
+                            <input type="text" name="q" value="{{ search_query }}" class="form-control rounded-pill px-3" placeholder="Search account #, name, or email...">
+                            <button type="submit" class="btn btn-navy rounded-pill px-4 text-white">Search</button>
+                            {% if search_query %}
+                                <a href="{{ url_for('manager.dashboard') }}" class="btn btn-outline-secondary rounded-pill px-3">Clear</a>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Account Number</th>
+                            <th>Account Holder</th>
+                            <th>Product Type</th>
+                            <th>Balance</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th class="text-end pe-4">Risk Management</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if accounts %}
+                            {% for acc in accounts %}
+                            <tr>
+                                <td class="ps-4">
+                                    <span class="font-monospace fw-bold text-navy-dark">{{ acc.account_number }}</span>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold text-navy-dark">{{ acc.owner.full_name or acc.owner.username }}</div>
+                                    <small class="text-muted">{{ acc.owner.email }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge {{ 'bg-success-subtle text-success' if acc.account_type == 'savings' else 'bg-primary-subtle text-primary' }} text-uppercase px-2 py-1 rounded-pill">
+                                        {{ acc.account_type }}
+                                    </span>
+                                </td>
+                                <td class="fw-bold text-navy-dark">
+                                    ${{ "{:,.2f}".format(acc.balance) }} <span class="small text-muted fw-normal">{{ acc.currency }}</span>
+                                </td>
+                                <td>
+                                    {% if acc.status == 'active' %}
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1">
+                                            <i class="bi bi-check-circle-fill me-1"></i>Active
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1">
+                                            <i class="bi bi-slash-circle-fill me-1"></i>Frozen
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-muted small">
+                                    {{ acc.created_at.strftime('%Y-%m-%d') }}
+                                </td>
+                                <td class="text-end pe-4">
+                                    <form method="POST" action="{{ url_for('manager.toggle_status', account_id=acc.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to change status for account #{{ acc.account_number }}?');">
+                                        {% if acc.status == 'active' %}
+                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                                <i class="bi bi-snow me-1"></i> Freeze Account
+                                            </button>
+                                        {% else %}
+                                            <button type="submit" class="btn btn-sm btn-outline-success rounded-pill px-3">
+                                                <i class="bi bi-unlock-fill me-1"></i> Unfreeze Account
+                                            </button>
+                                        {% endif %}
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-5 text-muted">
+                                    No accounts found matching your query.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Global Recent Ledger -->
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
+            <div class="card-header bg-white p-4 border-bottom">
+                <h5 class="fw-bold text-navy-dark mb-0"><i class="bi bi-shield-shaded text-warning me-2"></i>Global Bank Transaction Stream</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Reference</th>
+                            <th>Target Account</th>
+                            <th>Holder</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th class="text-end pe-4">Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in recent_transactions %}
+                        <tr>
+                            <td class="ps-4 font-monospace small text-muted">{{ t.reference_id }}</td>
+                            <td class="font-monospace small">{{ t.account.account_number }}</td>
+                            <td>{{ t.account.owner.full_name or t.account.owner.username }}</td>
+                            <td>
+                                <span class="badge {{ 'bg-success-subtle text-success' if t.transaction_type in ('deposit', 'transfer_in') else 'bg-danger-subtle text-danger' }} rounded-pill">
+                                    {{ t.transaction_type }}
+                                </span>
+                            </td>
+                            <td class="fw-bold {{ 'text-success' if t.transaction_type in ('deposit', 'transfer_in') else 'text-danger' }}">
+                                ${{ "{:,.2f}".format(t.amount) }}
+                            </td>
+                            <td class="text-end pe-4 text-muted small">{{ t.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

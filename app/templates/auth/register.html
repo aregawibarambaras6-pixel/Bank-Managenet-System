@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Open an Account - Apex Bank Management System{% endblock %}
+
+{% block content %}
+<section class="py-5 bg-navy min-vh-75 d-flex align-items-center">
+    <div class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-9">
+                <div class="card border-0 shadow-2xl rounded-4 bg-navy-card text-white overflow-hidden border border-navy-light">
+                    <!-- Header -->
+                    <div class="p-4 text-center border-bottom border-secondary border-opacity-25 bg-navy-dark">
+                        <div class="d-inline-flex p-3 rounded-circle bg-emerald bg-opacity-10 text-emerald mb-2">
+                            <i class="bi bi-bank fs-2 text-emerald"></i>
+                        </div>
+                        <h3 class="fw-bold text-white mb-1">Open an Apex Bank Account</h3>
+                        <p class="text-slate-400 small mb-0">Instant online provisioning with 256-bit encryption</p>
+                    </div>
+
+                    <!-- Form Body -->
+                    <div class="p-4 p-lg-5">
+                        <form method="POST" action="{{ url_for('auth.register') }}" novalidate>
+                            {{ form.hidden_tag() }}
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label for="full_name" class="form-label text-slate-300 small fw-semibold">Legal Full Name</label>
+                                    {{ form.full_name(class="form-control login-dark-input", id="full_name", placeholder="e.g. Michael Chen") }}
+                                    {% for error in form.full_name.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="username" class="form-label text-slate-300 small fw-semibold">Username</label>
+                                    {{ form.username(class="form-control login-dark-input", id="username", placeholder="e.g. mchen2026") }}
+                                    {% for error in form.username.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="email" class="form-label text-slate-300 small fw-semibold">Email Address</label>
+                                {{ form.email(class="form-control login-dark-input", id="email", placeholder="name@domain.com") }}
+                                {% for error in form.email.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label for="password" class="form-label text-slate-300 small fw-semibold">Password</label>
+                                    {{ form.password(class="form-control login-dark-input", id="password", placeholder="Min 6 characters") }}
+                                    {% for error in form.password.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="confirm_password" class="form-label text-slate-300 small fw-semibold">Confirm Password</label>
+                                    {{ form.confirm_password(class="form-control login-dark-input", id="confirm_password", placeholder="Re-type password") }}
+                                    {% for error in form.confirm_password.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <div class="p-3 mb-4 rounded-3 bg-white bg-opacity-5 border border-secondary border-opacity-10">
+                                <h6 class="text-emerald fw-semibold small mb-3"><i class="bi bi-wallet2 me-1"></i> Account Provisioning</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-7">
+                                        <label for="account_type" class="form-label text-slate-300 small">Select Product</label>
+                                        {{ form.account_type(class="form-select login-dark-input", id="account_type") }}
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label for="initial_deposit" class="form-label text-slate-300 small">Initial Deposit ($)</label>
+                                        {{ form.initial_deposit(class="form-control login-dark-input", id="initial_deposit") }}
+                                        {% for error in form.initial_deposit.errors %}
+                                            <div class="text-danger small mt-1">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-grid mb-3">
+                                {{ form.submit(class="btn btn-emerald btn-lg rounded-pill fw-semibold shadow-sm") }}
+                            </div>
+
+                            <div class="text-center pt-3 border-top border-secondary border-opacity-25">
+                                <p class="text-slate-400 small mb-0">
+                                    Already have an account? 
+                                    <a href="{{ url_for('auth.login') }}" class="text-emerald text-decoration-none fw-semibold">Sign In</a>
+                                </p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
