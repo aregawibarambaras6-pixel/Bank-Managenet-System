@@ -91,7 +91,126 @@
             {% endfor %}
         </div>
 
-        <!-- Recent Transactions Table -->
+        <!-- ═══════════ CBC SERVICES GRID ═══════════ -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold text-navy-dark mb-0">
+                <i class="bi bi-grid-3x3-gap text-emerald me-2"></i>Banking Services
+            </h4>
+        </div>
+        <div class="row g-3 mb-5">
+            <!-- 1. My Account -->
+            <div class="col-lg-3 col-md-4 col-6">
+                <a href="{{ url_for('services.my_account') }}" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
+                        <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                            <i class="bi bi-person-circle fs-4 text-white"></i>
+                        </div>
+                        <span class="fw-semibold text-navy-dark small">My Account</span>
+                    </div>
+                </a>
+            </div>
+            <!-- 2. Transfer to CBC Account -->
+            <div class="col-lg-3 col-md-4 col-6">
+                <a href="{{ url_for('services.cbc_transfer') }}" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
+                        <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #10b981, #059669);">
+                            <i class="bi bi-bank fs-4 text-white"></i>
+                        </div>
+                        <span class="fw-semibold text-navy-dark small">Transfer to CBC</span>
+                    </div>
+                </a>
+            </div>
+            <!-- 3. Beneficiary -->
+            <div class="col-lg-3 col-md-4 col-6">
+                <a href="{{ url_for('services.beneficiaries') }}" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
+                        <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                            <i class="bi bi-people fs-4 text-white"></i>
+                        </div>
+                        <span class="fw-semibold text-navy-dark small">Beneficiary</span>
+                    </div>
+                </a>
+            </div>
+            <!-- 4. Own Account Transfer -->
+            <div class="col-lg-3 col-md-4 col-6">
+                <a href="{{ url_for('services.own_transfer') }}" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
+                        <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #14b8a6, #0d9488);">
+                            <i class="bi bi-arrow-left-right fs-4 text-white"></i>
+                        </div>
+                        <span class="fw-semibold text-navy-dark small">Own Account Transfer</span>
+                    </div>
+                </a>
+            </div>
+            <!-- 5. CBC Cash Out -->
+            <div class="col-lg-3 col-md-4 col-6">
+                <a href="{{ url_for('services.cbc_cashout') }}" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
+                        <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                            <i class="bi bi-cash-coin fs-4 text-white"></i>
+                        </div>
+                        <span class="fw-semibold text-navy-dark small">CBC Cash Out</span>
+                    </div>
+                </a>
+            </div>
+            <!-- 6. ATM Cash Out -->
+            <div class="col-lg-3 col-md-4 col-6">
+                <a href="{{ url_for('services.atm_cashout') }}" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
+                        <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                            <i class="bi bi-credit-card-2-back fs-4 text-white"></i>
+                        </div>
+                        <span class="fw-semibold text-navy-dark small">ATM Cash Out</span>
+                    </div>
+                </a>
+            </div>
+            <!-- 7. Other Transfer -->
+            <div class="col-lg-3 col-md-4 col-6">
+                <a href="{{ url_for('services.other_transfer') }}" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
+                        <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">
+                            <i class="bi bi-building fs-4 text-white"></i>
+                        </div>
+                        <span class="fw-semibold text-navy-dark small">Other Transfer</span>
+                    </div>
+                </a>
+            </div>
+            <!-- 8. Airtime -->
+            <div class="col-lg-3 col-md-4 col-6">
+                <a href="{{ url_for('services.airtime') }}" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
+                        <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #ec4899, #db2777);">
+                            <i class="bi bi-phone fs-4 text-white"></i>
+                        </div>
+                        <span class="fw-semibold text-navy-dark small">Airtime</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <style>
+            .service-icon {
+                width: 56px;
+                height: 56px;
+                border-radius: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: transform 0.25s ease, box-shadow 0.25s ease;
+            }
+            .service-tile {
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+                cursor: pointer;
+            }
+            .service-tile:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
+            }
+            .service-tile:hover .service-icon {
+                transform: scale(1.1);
+                box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            }
+        </style>
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
             <div class="card-header bg-white p-4 border-bottom d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-2">

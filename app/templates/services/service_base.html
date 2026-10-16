@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="py-4 bg-light min-vh-100">
+    <div class="container" style="max-width: 720px;">
+        <!-- Back Navigation -->
+        <a href="{{ url_for('banking.dashboard') }}" class="text-decoration-none text-muted small d-inline-flex align-items-center mb-3 service-back-link">
+            <i class="bi bi-chevron-left me-1"></i> Back to Dashboard
+        </a>
+
+        <!-- Service Card -->
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden service-card">
+            <div class="card-header bg-navy text-white p-4 border-0">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="service-icon-lg {% block icon_bg %}bg-emerald{% endblock %}">
+                        <i class="bi {% block icon %}bi-gear{% endblock %} fs-4"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0">{% block service_title %}Service{% endblock %}</h4>
+                        <p class="text-slate-300 small mb-0">{% block service_subtitle %}{% endblock %}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                {% block service_body %}{% endblock %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .service-icon-lg {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+    }
+    .service-icon-lg.bg-emerald { background: linear-gradient(135deg, #10b981, #059669); }
+    .service-icon-lg.bg-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .service-icon-lg.bg-orange { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .service-icon-lg.bg-purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+    .service-icon-lg.bg-red { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .service-icon-lg.bg-teal { background: linear-gradient(135deg, #14b8a6, #0d9488); }
+    .service-icon-lg.bg-indigo { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+    .service-icon-lg.bg-pink { background: linear-gradient(135deg, #ec4899, #db2777); }
+
+    .service-card {
+        animation: fadeSlideUp 0.4s ease-out;
+    }
+    .service-back-link:hover {
+        color: var(--navy-dark) !important;
+    }
+    @keyframes fadeSlideUp {
+        from { opacity: 0; transform: translateY(16px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}

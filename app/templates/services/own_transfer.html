@@ -1,0 +1,36 @@
+{% extends "services/service_base.html" %}
+
+{% block title %}Own Account Transfer - CBC Bank{% endblock %}
+{% block icon_bg %}bg-teal{% endblock %}
+{% block icon %}bi-arrow-left-right{% endblock %}
+{% block service_title %}Own Account Transfer{% endblock %}
+{% block service_subtitle %}Move funds between your own accounts{% endblock %}
+
+{% block service_body %}
+<form method="POST" action="{{ url_for('services.own_transfer') }}">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">From Account</label>
+        {{ form.from_account(class="form-select") }}
+    </div>
+    <div class="text-center py-2">
+        <i class="bi bi-arrow-down-up fs-4 text-emerald"></i>
+    </div>
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">To Account</label>
+        {{ form.to_account(class="form-select") }}
+    </div>
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Amount (Birr)</label>
+        {{ form.amount(class="form-control form-control-lg", placeholder="0.00", min="1", step="0.01") }}
+    </div>
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Remark</label>
+        {{ form.description(class="form-control", placeholder="Optional remark") }}
+    </div>
+    <div class="d-flex gap-2 pt-2">
+        <a href="{{ url_for('banking.dashboard') }}" class="btn btn-light rounded-pill px-4">Cancel</a>
+        {{ form.submit(class="btn btn-emerald rounded-pill px-4 text-white flex-grow-1") }}
+    </div>
+</form>
+{% endblock %}

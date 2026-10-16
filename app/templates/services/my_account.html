@@ -1,0 +1,54 @@
+{% extends "services/service_base.html" %}
+
+{% block title %}My Account - CBC Bank{% endblock %}
+{% block icon_bg %}bg-blue{% endblock %}
+{% block icon %}bi-person-circle{% endblock %}
+{% block service_title %}My Account{% endblock %}
+{% block service_subtitle %}View your account details and balances{% endblock %}
+
+{% block service_body %}
+<div class="mb-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold text-navy-dark mb-0">Account Summary</h6>
+        <span class="badge bg-emerald-subtle text-emerald-dark rounded-pill px-3 py-2">
+            Total: ${{ "{:,.2f}".format(total_balance) }}
+        </span>
+    </div>
+</div>
+
+{% for acc in accounts %}
+<div class="card border rounded-3 mb-3 {{ 'border-success' if acc.status == 'active' else 'border-danger' }}">
+    <div class="card-body p-3">
+        <div class="row align-items-center">
+            <div class="col-md-3">
+                <span class="badge {{ 'bg-primary-subtle text-primary' if acc.account_type == 'checking' else 'bg-success-subtle text-success' }} rounded-pill text-uppercase px-2 py-1 mb-1">
+                    {{ acc.account_type }}
+                </span>
+                <h6 class="font-monospace fw-bold text-navy-dark mb-0">{{ acc.account_number }}</h6>
+            </div>
+            <div class="col-md-3">
+                <span class="text-muted small">Balance</span>
+                <h5 class="fw-bold mb-0 {{ 'text-success' if acc.balance > 0 else 'text-danger' }}">${{ "{:,.2f}".format(acc.balance) }}</h5>
+            </div>
+            <div class="col-md-3">
+                <span class="text-muted small">Currency</span>
+                <div class="fw-semibold">{{ acc.currency }}</div>
+            </div>
+            <div class="col-md-3 text-end">
+                <span class="badge {{ 'bg-success' if acc.status == 'active' else 'bg-danger' }} rounded-pill px-3 py-1">
+                    <i class="bi {{ 'bi-check-circle' if acc.status == 'active' else 'bi-x-circle' }} me-1"></i>{{ acc.status.upper() }}
+                </span>
+                <div class="text-muted small mt-1">Since {{ acc.created_at.strftime('%b %d, %Y') }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% if not accounts %}
+<div class="text-center py-5 text-muted">
+    <i class="bi bi-wallet2 fs-1 d-block mb-2"></i>
+    <p>No accounts found.</p>
+</div>
+{% endif %}
+{% endblock %}

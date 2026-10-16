@@ -1,0 +1,45 @@
+{% extends "services/service_base.html" %}
+
+{% block title %}Other Bank Transfer - CBC Bank{% endblock %}
+{% block icon_bg %}bg-indigo{% endblock %}
+{% block icon %}bi-building{% endblock %}
+{% block service_title %}Other Bank Transfer{% endblock %}
+{% block service_subtitle %}Send money to accounts at other Ethiopian banks{% endblock %}
+
+{% block service_body %}
+<form method="POST" action="{{ url_for('services.other_transfer') }}">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">From Account</label>
+        <select name="account_id" class="form-select" required>
+            {% for acc in accounts %}
+            <option value="{{ acc.id }}">{{ acc.account_number }} ({{ acc.account_type.title() }}) - ${{ "{:,.2f}".format(acc.balance) }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Destination Bank</label>
+        {{ form.bank_name(class="form-select") }}
+    </div>
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Recipient Account Number</label>
+        {{ form.recipient_account(class="form-control", placeholder="Enter account number") }}
+    </div>
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Recipient Name</label>
+        {{ form.recipient_name(class="form-control", placeholder="Full name of recipient") }}
+    </div>
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Amount (Birr)</label>
+        {{ form.amount(class="form-control form-control-lg", placeholder="0.00", min="1", step="0.01") }}
+    </div>
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Remark</label>
+        {{ form.description(class="form-control", placeholder="Optional description") }}
+    </div>
+    <div class="d-flex gap-2 pt-2">
+        <a href="{{ url_for('banking.dashboard') }}" class="btn btn-light rounded-pill px-4">Cancel</a>
+        {{ form.submit(class="btn btn-emerald rounded-pill px-4 text-white flex-grow-1") }}
+    </div>
+</form>
+{% endblock %}

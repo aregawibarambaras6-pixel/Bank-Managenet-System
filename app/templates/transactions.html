@@ -14,7 +14,7 @@
                 <h3 class="fw-bold text-navy-dark mb-1 mt-1">Transaction Ledger & Audit Trail</h3>
                 <p class="text-muted small mb-0">Complete cryptographically referenced records of all account operations.</p>
             </div>
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 flex-wrap">
                 <a href="{{ url_for('banking.transactions') }}" class="btn btn-sm {{ 'btn-navy text-white' if not filter_type else 'btn-outline-secondary' }} rounded-pill px-3">
                     All ({{ transactions|length }})
                 </a>
@@ -29,6 +29,18 @@
                 </a>
                 <a href="{{ url_for('banking.transactions', type='transfer_in') }}" class="btn btn-sm {{ 'btn-primary text-white' if filter_type == 'transfer_in' else 'btn-outline-secondary' }} rounded-pill px-3">
                     Incoming
+                </a>
+                <a href="{{ url_for('banking.transactions', type='cbc_transfer_out') }}" class="btn btn-sm {{ 'btn-info text-white' if filter_type == 'cbc_transfer_out' else 'btn-outline-secondary' }} rounded-pill px-3">
+                    CBC Transfer
+                </a>
+                <a href="{{ url_for('banking.transactions', type='cbc_cashout') }}" class="btn btn-sm {{ 'btn-warning text-dark' if filter_type == 'cbc_cashout' else 'btn-outline-secondary' }} rounded-pill px-3">
+                    CBC Cash Out
+                </a>
+                <a href="{{ url_for('banking.transactions', type='atm_cashout') }}" class="btn btn-sm {{ 'btn-danger text-white' if filter_type == 'atm_cashout' else 'btn-outline-secondary' }} rounded-pill px-3">
+                    ATM Cash Out
+                </a>
+                <a href="{{ url_for('banking.transactions', type='airtime') }}" class="btn btn-sm {{ 'btn-secondary text-white' if filter_type == 'airtime' else 'btn-outline-secondary' }} rounded-pill px-3">
+                    Airtime
                 </a>
             </div>
         </div>

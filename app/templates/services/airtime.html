@@ -1,0 +1,63 @@
+{% extends "services/service_base.html" %}
+
+{% block title %}Airtime Top-Up - CBC Bank{% endblock %}
+{% block icon_bg %}bg-pink{% endblock %}
+{% block icon %}bi-phone{% endblock %}
+{% block service_title %}Airtime Top-Up{% endblock %}
+{% block service_subtitle %}Buy airtime for any mobile number instantly{% endblock %}
+
+{% block service_body %}
+<form method="POST" action="{{ url_for('services.airtime') }}">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">From Account</label>
+        <select name="account_id" class="form-select" required>
+            {% for acc in accounts %}
+            <option value="{{ acc.id }}">{{ acc.account_number }} ({{ acc.account_type.title() }}) - ${{ "{:,.2f}".format(acc.balance) }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Service Provider</label>
+        {{ form.provider(class="form-select") }}
+    </div>
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Phone Number</label>
+        {{ form.phone_number(class="form-control", placeholder="e.g. 0911234567") }}
+    </div>
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Amount (Birr)</label>
+        {{ form.amount(class="form-control form-control-lg", placeholder="0.00", min="5", step="1") }}
+        <small class="text-muted">Min: 5 Birr &middot; Max: 5,000 Birr</small>
+    </div>
+
+    <!-- Quick Amount Buttons -->
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Quick Select</label>
+        <div class="d-flex flex-wrap gap-2">
+            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 airtime-quick" data-amount="10">10 Birr</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 airtime-quick" data-amount="25">25 Birr</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 airtime-quick" data-amount="50">50 Birr</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 airtime-quick" data-amount="100">100 Birr</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 airtime-quick" data-amount="200">200 Birr</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 airtime-quick" data-amount="500">500 Birr</button>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 pt-2">
+        <a href="{{ url_for('banking.dashboard') }}" class="btn btn-light rounded-pill px-4">Cancel</a>
+        {{ form.submit(class="btn btn-emerald rounded-pill px-4 text-white flex-grow-1") }}
+    </div>
+</form>
+
+<script>
+document.querySelectorAll('.airtime-quick').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.getElementById('amount').value = this.dataset.amount;
+        // highlight selected
+        document.querySelectorAll('.airtime-quick').forEach(b => b.classList.remove('btn-emerald', 'text-white'));
+        this.classList.add('btn-emerald', 'text-white');
+    });
+});
+</script>
+{% endblock %}

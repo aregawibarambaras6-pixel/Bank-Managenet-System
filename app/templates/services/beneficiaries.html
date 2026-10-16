@@ -1,0 +1,66 @@
+{% extends "services/service_base.html" %}
+
+{% block title %}Beneficiaries - CBC Bank{% endblock %}
+{% block icon_bg %}bg-purple{% endblock %}
+{% block icon %}bi-people{% endblock %}
+{% block service_title %}Beneficiary Management{% endblock %}
+{% block service_subtitle %}Save and manage your frequent transfer recipients{% endblock %}
+
+{% block service_body %}
+<!-- Add New Beneficiary -->
+<div class="mb-4">
+    <h6 class="fw-bold text-navy-dark mb-3"><i class="bi bi-plus-circle me-1"></i> Add New Beneficiary</h6>
+    <form method="POST" action="{{ url_for('services.add_beneficiary') }}">
+        {{ form.hidden_tag() }}
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold text-muted">Full Name</label>
+                {{ form.name(class="form-control", placeholder="e.g. Abebe Kebede") }}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-muted">Account Number</label>
+                {{ form.account_number(class="form-control", placeholder="e.g. 4040123456") }}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-muted">Bank</label>
+                {{ form.bank_name(class="form-select") }}
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                {{ form.submit(class="btn btn-emerald rounded-pill px-3 text-white w-100") }}
+            </div>
+        </div>
+    </form>
+</div>
+
+<hr>
+
+<!-- Saved Beneficiaries -->
+<h6 class="fw-bold text-navy-dark mb-3"><i class="bi bi-bookmark-star me-1"></i> Saved Beneficiaries</h6>
+{% if beneficiaries %}
+<div class="list-group">
+    {% for b in beneficiaries %}
+    <div class="list-group-item d-flex justify-content-between align-items-center rounded-3 mb-2 border">
+        <div class="d-flex align-items-center gap-3">
+            <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width:42px; height:42px;">
+                <i class="bi bi-person-fill"></i>
+            </div>
+            <div>
+                <div class="fw-semibold text-navy-dark">{{ b.name }}</div>
+                <small class="text-muted font-monospace">{{ b.account_number }} &middot; {{ b.bank_name }}</small>
+            </div>
+        </div>
+        <form method="POST" action="{{ url_for('services.delete_beneficiary', beneficiary_id=b.id) }}" onsubmit="return confirm('Remove beneficiary {{ b.name }}?');" class="d-inline">
+            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                <i class="bi bi-trash me-1"></i>Remove
+            </button>
+        </form>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-4 text-muted">
+    <i class="bi bi-people fs-1 d-block mb-2 opacity-50"></i>
+    <p>No beneficiaries saved yet. Add one above!</p>
+</div>
+{% endif %}
+{% endblock %}

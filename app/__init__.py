@@ -21,12 +21,14 @@ def create_app(config_name='development'):
     from app.routes.banking_routes import banking_bp
     from app.routes.manager_routes import manager_bp
     from app.routes.admin_routes import admin_bp
+    from app.routes.services_routes import services_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(banking_bp)
     app.register_blueprint(manager_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(services_bp)
 
     # Initialize Database tables and Seed Data
     with app.app_context():
