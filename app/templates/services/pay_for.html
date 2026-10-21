@@ -1,0 +1,60 @@
+{% extends "services/service_base.html" %}
+
+{% block title %}Pay For Services - CBC Bank{% endblock %}
+{% block icon_bg %}bg-amber{% endblock %}
+{% block icon %}bi-receipt-cutoff{% endblock %}
+{% block service_title %}Pay For Goods & Institutions{% endblock %}
+{% block service_subtitle %}Pay school fees, medical centers, fuel stations, and paybill businesses{% endblock %}
+
+{% block service_body %}
+<!-- Sub Navigation -->
+<div class="mb-3 pb-2 border-bottom d-flex justify-content-between align-items-center">
+    <span class="small text-muted"><i class="bi bi-wallet-fill me-1"></i> Fast institutional billing with reference verification</span>
+    <a href="{{ url_for('services.next_services') }}" class="small text-decoration-none text-primary">
+        <i class="bi bi-grid-fill me-1"></i> All Services (Page 2)
+    </a>
+</div>
+
+<form method="POST" action="{{ url_for('services.pay_for') }}">
+    {{ form.hidden_tag() }}
+
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">From Account</label>
+        <select name="account_id" class="form-select" required>
+            {% for acc in accounts %}
+            <option value="{{ acc.id }}">{{ acc.account_number }} ({{ acc.account_type.title() }}) - ${{ "{:,.2f}".format(acc.balance) }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Payment Category</label>
+        {{ form.category(class="form-select") }}
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Paybill Number / Short Code</label>
+        {{ form.paybill_number(class="form-control", placeholder="e.g. 770022 or School Code") }}
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Reference / Student ID / Patient ID</label>
+        {{ form.reference_number(class="form-control", placeholder="e.g. STU-2024-991") }}
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Payment Amount (Birr)</label>
+        {{ form.amount(class="form-control form-control-lg", placeholder="0.00", min="1", step="0.01") }}
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Remark (Optional)</label>
+        {{ form.description(class="form-control", placeholder="e.g. Term 2 Tuition Fee") }}
+    </div>
+
+    <div class="d-flex gap-2 pt-2">
+        <a href="{{ url_for('services.next_services') }}" class="btn btn-light rounded-pill px-4">Cancel</a>
+        {{ form.submit(class="btn btn-emerald rounded-pill px-4 text-white flex-grow-1") }}
+    </div>
+</form>
+{% endblock %}

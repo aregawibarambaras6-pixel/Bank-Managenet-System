@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block title %}Extended Banking Services - Page 2 - CBC Bank{% endblock %}
+
+{% block content %}
+<div class="py-4 bg-light min-vh-100">
+    <div class="container" style="max-width: 960px;">
+        <!-- Top Back Navigation -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a href="{{ url_for('banking.dashboard') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 d-inline-flex align-items-center">
+                <i class="bi bi-chevron-left me-1"></i> Back to Dashboard
+            </a>
+            <span class="badge bg-emerald-subtle text-emerald-dark px-3 py-2 rounded-pill small fw-semibold">
+                Services &bull; Page 2 of 2
+            </span>
+        </div>
+
+        <!-- Header Card -->
+        <div class="card border-0 shadow-sm rounded-4 bg-navy text-white mb-4 overflow-hidden position-relative">
+            <div class="hero-bg-glow"></div>
+            <div class="card-body p-4 position-relative z-1">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1 small">
+                                <i class="bi bi-layers-fill me-1"></i> Next Services (Page 2)
+                            </span>
+                        </div>
+                        <h3 class="fw-bold mb-1">Extended Banking & Payment Services</h3>
+                        <p class="text-slate-300 small mb-0">Select any utility, lifestyle, government, or merchant service below to pay directly from your CBC account.</p>
+                    </div>
+                    <div>
+                        <a href="{{ url_for('banking.dashboard') }}" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                            <i class="bi bi-arrow-left-circle me-1"></i> 10. Back to Page 1
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════ SERVICES GRID (ITEMS 1 to 10) ═══════════ -->
+        <div class="row g-3 mb-4">
+            <!-- 1. Bills and Utilities -->
+            <div class="col-lg-4 col-md-6 col-12">
+                <a href="{{ url_for('services.bills_utilities') }}" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 service-tile h-100 position-relative overflow-hidden">
+                        <div class="position-absolute top-0 end-0 mt-2 me-3">
+                            <span class="badge bg-light text-muted border rounded-pill">#1</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="service-icon" style="background: linear-gradient(135deg, #0ea5e9, #0284c7);">
+                                <i class="bi bi-lightning-charge fs-4 text-white"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold text-navy-dark mb-1">Bills & Utilities</h6>
+                                <p class="text-muted small mb-0">EEU Electric, AAWSA Water, Telecoms, Fiber</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- 2. Travel -->
+            <div class="col-lg-4 col-md-6 col-12">
+                <a href="{{ url_for('services.travel') }}" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 service-tile h-100 position-relative overflow-hidden">
+                        <div class="position-absolute top-0 end-0 mt-2 me-3">
+                            <span class="badge bg-light text-muted border rounded-pill">#2</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="service-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                                <i class="bi bi-airplane-engines fs-4 text-white"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold text-navy-dark mb-1">Travel</h6>
+                                <p class="text-muted small mb-0">Ethiopian Airlines, Ride / Feres, Bus & Train</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- 3. Shopping -->
+            <div class="col-lg-4 col-md-6 col-12">
+                <a href="{{ url_for('services.shopping') }}" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 service-tile h-100 position-relative overflow-hidden">
+                        <div class="position-absolute top-0 end-0 mt-2 me-3">
+                            <span class="badge bg-light text-muted border rounded-pill">#3</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="service-icon" style="background: linear-gradient(135deg, #10b981, #047857);">
+                                <i class="bi bi-bag-check fs-4 text-white"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold text-navy-dark mb-1">Shopping</h6>
+                                <p class="text-muted small mb-0">Merchant Till, Supermarkets, E-Commerce</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- 4. Government Services -->
+            <div class="col-lg-4 col-md-6 col-12">
+                <a href="{{ url_for('services.government_services') }}" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 service-tile h-100 position-relative overflow-hidden">
+                        <div class="position-absolute top-0 end-0 mt-2 me-3">
+                            <span class="badge bg-light text-muted border rounded-pill">#4</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="service-icon" style="background: linear-gradient(135deg, #6366f1, #4338ca);">
+                                <i class="bi bi-bank2 fs-4 text-white"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold text-navy-dark mb-1">Government Services</h6>
+                                <p class="text-muted small mb-0">ICS Passport, DARA, Traffic Fines, Municipal</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- 5. Subscriptions -->
+            <div class="col-lg-4 col-md-6 col-12">
+                <a href="{{ url_for('services.subscriptions') }}" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 service-tile h-100 position-relative overflow-hidden">
+                        <div class="position-absolute top-0 end-0 mt-2 me-3">
+                            <span class="badge bg-light text-muted border rounded-pill">#5</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="service-icon" style="background: linear-gradient(135deg, #ec4899, #be185d);">
+                                <i class="bi bi-tv fs-4 text-white"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold text-navy-dark mb-1">Subscriptions</h6>
+                                <p class="text-muted small mb-0">DSTV, Canal+, Streaming, Memberships</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- 6. Pay For -->
+            <div class="col-lg-4 col-md-6 col-12">
+                <a href="{{ url_for('services.pay_for') }}" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 service-tile h-100 position-relative overflow-hidden">
+                        <div class="position-absolute top-0 end-0 mt-2 me-3">
+                            <span class="badge bg-light text-muted border rounded-pill">#6</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="service-icon" style="background: linear-gradient(135deg, #f59e0b, #b45309);">
+                                <i class="bi bi-receipt-cutoff fs-4 text-white"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold text-navy-dark mb-1">Pay For</h6>
+                                <p class="text-muted small mb-0">School Tuition, Hospital Care, Paybill Till</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- 7. Donation -->
+            <div class="col-lg-4 col-md-6 col-12">
+                <a href="{{ url_for('services.donation') }}" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 service-tile h-100 position-relative overflow-hidden">
+                        <div class="position-absolute top-0 end-0 mt-2 me-3">
+                            <span class="badge bg-light text-muted border rounded-pill">#7</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="service-icon" style="background: linear-gradient(135deg, #ef4444, #b91c1c);">
+                                <i class="bi bi-heart-fill fs-4 text-white"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold text-navy-dark mb-1">Donation</h6>
+                                <p class="text-muted small mb-0">Mekedonia, Red Cross, Gergesenon, Relief</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- 8. Tax Payment -->
+            <div class="col-lg-4 col-md-6 col-12">
+                <a href="{{ url_for('services.tax_payment') }}" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 service-tile h-100 position-relative overflow-hidden">
+                        <div class="position-absolute top-0 end-0 mt-2 me-3">
+                            <span class="badge bg-light text-muted border rounded-pill">#8</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="service-icon" style="background: linear-gradient(135deg, #14b8a6, #0f766e);">
+                                <i class="bi bi-file-earmark-ruled fs-4 text-white"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold text-navy-dark mb-1">Tax Payment</h6>
+                                <p class="text-muted small mb-0">Ministry of Revenues (MOR), TIN, Customs, PIT</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- 9. My Service -->
+            <div class="col-lg-4 col-md-6 col-12">
+                <a href="{{ url_for('services.my_service') }}" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 service-tile h-100 position-relative overflow-hidden">
+                        <div class="position-absolute top-0 end-0 mt-2 me-3">
+                            <span class="badge bg-light text-muted border rounded-pill">#9</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="service-icon" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
+                                <i class="bi bi-star-fill fs-4 text-white"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold text-navy-dark mb-1">My Service</h6>
+                                <p class="text-muted small mb-0">Saved Custom Services & Frequent Shortcuts</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- 10. Back -->
+            <div class="col-lg-4 col-md-6 col-12">
+                <a href="{{ url_for('banking.dashboard') }}" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 service-tile h-100 position-relative overflow-hidden border-2 border-secondary border-dashed" style="background: #f8fafc;">
+                        <div class="position-absolute top-0 end-0 mt-2 me-3">
+                            <span class="badge bg-secondary text-white rounded-pill">#10</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="service-icon" style="background: linear-gradient(135deg, #64748b, #334155);">
+                                <i class="bi bi-arrow-left fs-4 text-white"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold text-navy-dark mb-1">Back</h6>
+                                <p class="text-muted small mb-0">Return to Page 1 Core Banking Services</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .service-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .service-tile {
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        background: #ffffff;
+    }
+    .service-tile:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04) !important;
+    }
+    .service-tile:hover .service-icon {
+        transform: scale(1.06);
+    }
+</style>
+{% endblock %}

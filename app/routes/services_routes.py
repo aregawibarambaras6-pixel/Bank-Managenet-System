@@ -8,7 +8,9 @@ from app.models.transaction import Transaction
 from app.models.beneficiary import Beneficiary
 from app.forms.services_forms import (
     CBCTransferForm, BeneficiaryForm, OwnAccountTransferForm,
-    CBCCashOutForm, ATMCashOutForm, OtherBankTransferForm, AirtimeForm
+    CBCCashOutForm, ATMCashOutForm, OtherBankTransferForm, AirtimeForm,
+    BillsUtilitiesForm, TravelForm, ShoppingForm, GovernmentServicesForm,
+    SubscriptionsForm, PayForForm, DonationForm, TaxPaymentForm, MyServiceForm
 )
 from app.utils.decorators import customer_required
 
@@ -382,3 +384,410 @@ def airtime():
             flash(f'Airtime purchase failed: {str(e)}', 'danger')
 
     return render_template('services/airtime.html', form=form, accounts=accounts)
+
+
+# ──────────────────────────────────────────────
+# 9. Next (Services Page 2 Hub)
+# ──────────────────────────────────────────────
+@services_bp.route('/next')
+@customer_required
+def next_services():
+    """Banking Services - Page 2 hub displaying extended services."""
+    return render_template('services/next_services.html')
+
+
+# ──────────────────────────────────────────────
+# 9.1 Bills & Utilities
+# ──────────────────────────────────────────────
+@services_bp.route('/bills-utilities', methods=['GET', 'POST'])
+@customer_required
+def bills_utilities():
+    form = BillsUtilitiesForm()
+    accounts = Account.query.filter_by(user_id=current_user.id, status='active').all()
+
+    if form.validate_on_submit():
+        account_id = request.form.get('account_id', type=int)
+        account = Account.query.filter_by(id=account_id, user_id=current_user.id).first()
+        if not account:
+            flash('Source account not found.', 'danger')
+            return redirect(url_for('services.bills_utilities'))
+
+        amount = float(form.amount.data)
+        if account.balance < amount:
+            flash(f'Insufficient funds. Available: ${account.balance:,.2f}', 'danger')
+            return redirect(url_for('services.bills_utilities'))
+
+        try:
+            account.balance -= amount
+            ref_id = Transaction.generate_reference()
+            txn = Transaction(
+                reference_id=ref_id,
+                account_id=account.id,
+                transaction_type='bill_payment',
+                amount=amount,
+                balance_after=account.balance,
+                description=f'Bill: {form.biller_category.data} (Ref: {form.bill_reference.data}) - {form.description.data}',
+                related_account=f'{form.biller_category.data}:{form.bill_reference.data}'
+            )
+            db.session.add(txn)
+            db.session.commit()
+            flash(f'Successfully paid {amount:,.2f} Birr for {form.biller_category.data}. Ref: {ref_id}', 'success')
+            return redirect(url_for('banking.dashboard'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Bill payment failed: {str(e)}', 'danger')
+
+    return render_template('services/bills_utilities.html', form=form, accounts=accounts)
+
+
+# ──────────────────────────────────────────────
+# 9.2 Travel
+# ──────────────────────────────────────────────
+@services_bp.route('/travel', methods=['GET', 'POST'])
+@customer_required
+def travel():
+    form = TravelForm()
+    accounts = Account.query.filter_by(user_id=current_user.id, status='active').all()
+
+    if form.validate_on_submit():
+        account_id = request.form.get('account_id', type=int)
+        account = Account.query.filter_by(id=account_id, user_id=current_user.id).first()
+        if not account:
+            flash('Source account not found.', 'danger')
+            return redirect(url_for('services.travel'))
+
+        amount = float(form.amount.data)
+        if account.balance < amount:
+            flash(f'Insufficient funds. Available: ${account.balance:,.2f}', 'danger')
+            return redirect(url_for('services.travel'))
+
+        try:
+            account.balance -= amount
+            ref_id = Transaction.generate_reference()
+            txn = Transaction(
+                reference_id=ref_id,
+                account_id=account.id,
+                transaction_type='travel',
+                amount=amount,
+                balance_after=account.balance,
+                description=f'Travel: {form.travel_type.data} ({form.booking_reference.data}) - {form.passenger_name.data}',
+                related_account=f'{form.travel_type.data}:{form.booking_reference.data}'
+            )
+            db.session.add(txn)
+            db.session.commit()
+            flash(f'Travel payment of {amount:,.2f} Birr confirmed for {form.passenger_name.data} ({form.travel_type.data}). Ref: {ref_id}', 'success')
+            return redirect(url_for('banking.dashboard'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Travel payment failed: {str(e)}', 'danger')
+
+    return render_template('services/travel.html', form=form, accounts=accounts)
+
+
+# ──────────────────────────────────────────────
+# 9.3 Shopping
+# ──────────────────────────────────────────────
+@services_bp.route('/shopping', methods=['GET', 'POST'])
+@customer_required
+def shopping():
+    form = ShoppingForm()
+    accounts = Account.query.filter_by(user_id=current_user.id, status='active').all()
+
+    if form.validate_on_submit():
+        account_id = request.form.get('account_id', type=int)
+        account = Account.query.filter_by(id=account_id, user_id=current_user.id).first()
+        if not account:
+            flash('Source account not found.', 'danger')
+            return redirect(url_for('services.shopping'))
+
+        amount = float(form.amount.data)
+        if account.balance < amount:
+            flash(f'Insufficient funds. Available: ${account.balance:,.2f}', 'danger')
+            return redirect(url_for('services.shopping'))
+
+        try:
+            account.balance -= amount
+            ref_id = Transaction.generate_reference()
+            txn = Transaction(
+                reference_id=ref_id,
+                account_id=account.id,
+                transaction_type='shopping',
+                amount=amount,
+                balance_after=account.balance,
+                description=f'Shopping: {form.merchant_type.data} (Till: {form.merchant_code.data}, Inv: {form.invoice_number.data})',
+                related_account=f'Till:{form.merchant_code.data}'
+            )
+            db.session.add(txn)
+            db.session.commit()
+            flash(f'Shopping payment of {amount:,.2f} Birr completed to Till #{form.merchant_code.data}. Ref: {ref_id}', 'success')
+            return redirect(url_for('banking.dashboard'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Shopping payment failed: {str(e)}', 'danger')
+
+    return render_template('services/shopping.html', form=form, accounts=accounts)
+
+
+# ──────────────────────────────────────────────
+# 9.4 Government Services
+# ──────────────────────────────────────────────
+@services_bp.route('/government-services', methods=['GET', 'POST'])
+@customer_required
+def government_services():
+    form = GovernmentServicesForm()
+    accounts = Account.query.filter_by(user_id=current_user.id, status='active').all()
+
+    if form.validate_on_submit():
+        account_id = request.form.get('account_id', type=int)
+        account = Account.query.filter_by(id=account_id, user_id=current_user.id).first()
+        if not account:
+            flash('Source account not found.', 'danger')
+            return redirect(url_for('services.government_services'))
+
+        amount = float(form.amount.data)
+        if account.balance < amount:
+            flash(f'Insufficient funds. Available: ${account.balance:,.2f}', 'danger')
+            return redirect(url_for('services.government_services'))
+
+        try:
+            account.balance -= amount
+            ref_id = Transaction.generate_reference()
+            txn = Transaction(
+                reference_id=ref_id,
+                account_id=account.id,
+                transaction_type='gov_service',
+                amount=amount,
+                balance_after=account.balance,
+                description=f'Govt Fee: {form.agency.data} (App #{form.application_number.data}) for {form.applicant_name.data}',
+                related_account=f'{form.agency.data}:{form.application_number.data}'
+            )
+            db.session.add(txn)
+            db.session.commit()
+            flash(f'Government fee of {amount:,.2f} Birr paid to {form.agency.data}. Official Ref: {ref_id}', 'success')
+            return redirect(url_for('banking.dashboard'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Government fee payment failed: {str(e)}', 'danger')
+
+    return render_template('services/government_services.html', form=form, accounts=accounts)
+
+
+# ──────────────────────────────────────────────
+# 9.5 Subscriptions
+# ──────────────────────────────────────────────
+@services_bp.route('/subscriptions', methods=['GET', 'POST'])
+@customer_required
+def subscriptions():
+    form = SubscriptionsForm()
+    accounts = Account.query.filter_by(user_id=current_user.id, status='active').all()
+
+    if form.validate_on_submit():
+        account_id = request.form.get('account_id', type=int)
+        account = Account.query.filter_by(id=account_id, user_id=current_user.id).first()
+        if not account:
+            flash('Source account not found.', 'danger')
+            return redirect(url_for('services.subscriptions'))
+
+        amount = float(form.amount.data)
+        if account.balance < amount:
+            flash(f'Insufficient funds. Available: ${account.balance:,.2f}', 'danger')
+            return redirect(url_for('services.subscriptions'))
+
+        try:
+            account.balance -= amount
+            ref_id = Transaction.generate_reference()
+            txn = Transaction(
+                reference_id=ref_id,
+                account_id=account.id,
+                transaction_type='subscription',
+                amount=amount,
+                balance_after=account.balance,
+                description=f'Subscription: {form.subscription_service.data} - {form.package.data} (Acc: {form.account_number.data})',
+                related_account=f'{form.subscription_service.data}:{form.account_number.data}'
+            )
+            db.session.add(txn)
+            db.session.commit()
+            flash(f'Subscription {form.subscription_service.data} ({form.package.data}) renewed for {amount:,.2f} Birr. Ref: {ref_id}', 'success')
+            return redirect(url_for('banking.dashboard'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Subscription renewal failed: {str(e)}', 'danger')
+
+    return render_template('services/subscriptions.html', form=form, accounts=accounts)
+
+
+# ──────────────────────────────────────────────
+# 9.6 Pay For
+# ──────────────────────────────────────────────
+@services_bp.route('/pay-for', methods=['GET', 'POST'])
+@customer_required
+def pay_for():
+    form = PayForForm()
+    accounts = Account.query.filter_by(user_id=current_user.id, status='active').all()
+
+    if form.validate_on_submit():
+        account_id = request.form.get('account_id', type=int)
+        account = Account.query.filter_by(id=account_id, user_id=current_user.id).first()
+        if not account:
+            flash('Source account not found.', 'danger')
+            return redirect(url_for('services.pay_for'))
+
+        amount = float(form.amount.data)
+        if account.balance < amount:
+            flash(f'Insufficient funds. Available: ${account.balance:,.2f}', 'danger')
+            return redirect(url_for('services.pay_for'))
+
+        try:
+            account.balance -= amount
+            ref_id = Transaction.generate_reference()
+            txn = Transaction(
+                reference_id=ref_id,
+                account_id=account.id,
+                transaction_type='pay_for',
+                amount=amount,
+                balance_after=account.balance,
+                description=f'Pay For: {form.category.data} (Paybill: {form.paybill_number.data}, Ref: {form.reference_number.data})',
+                related_account=f'{form.paybill_number.data}:{form.reference_number.data}'
+            )
+            db.session.add(txn)
+            db.session.commit()
+            flash(f'Payment of {amount:,.2f} Birr sent successfully to {form.paybill_number.data}. Ref: {ref_id}', 'success')
+            return redirect(url_for('banking.dashboard'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Payment failed: {str(e)}', 'danger')
+
+    return render_template('services/pay_for.html', form=form, accounts=accounts)
+
+
+# ──────────────────────────────────────────────
+# 9.7 Donation
+# ──────────────────────────────────────────────
+@services_bp.route('/donation', methods=['GET', 'POST'])
+@customer_required
+def donation():
+    form = DonationForm()
+    accounts = Account.query.filter_by(user_id=current_user.id, status='active').all()
+
+    if form.validate_on_submit():
+        account_id = request.form.get('account_id', type=int)
+        account = Account.query.filter_by(id=account_id, user_id=current_user.id).first()
+        if not account:
+            flash('Source account not found.', 'danger')
+            return redirect(url_for('services.donation'))
+
+        amount = float(form.amount.data)
+        if account.balance < amount:
+            flash(f'Insufficient funds. Available: ${account.balance:,.2f}', 'danger')
+            return redirect(url_for('services.donation'))
+
+        try:
+            account.balance -= amount
+            ref_id = Transaction.generate_reference()
+            txn = Transaction(
+                reference_id=ref_id,
+                account_id=account.id,
+                transaction_type='donation',
+                amount=amount,
+                balance_after=account.balance,
+                description=f'Donation: {form.charity_name.data} - {form.cause.data} (Donor: {form.donor_name.data})',
+                related_account=f'Charity:{form.charity_name.data}'
+            )
+            db.session.add(txn)
+            db.session.commit()
+            flash(f'Thank you! Your donation of {amount:,.2f} Birr to {form.charity_name.data} was successful. Ref: {ref_id}', 'success')
+            return redirect(url_for('banking.dashboard'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Donation failed: {str(e)}', 'danger')
+
+    return render_template('services/donation.html', form=form, accounts=accounts)
+
+
+# ──────────────────────────────────────────────
+# 9.8 Tax Payment
+# ──────────────────────────────────────────────
+@services_bp.route('/tax-payment', methods=['GET', 'POST'])
+@customer_required
+def tax_payment():
+    form = TaxPaymentForm()
+    accounts = Account.query.filter_by(user_id=current_user.id, status='active').all()
+
+    if form.validate_on_submit():
+        account_id = request.form.get('account_id', type=int)
+        account = Account.query.filter_by(id=account_id, user_id=current_user.id).first()
+        if not account:
+            flash('Source account not found.', 'danger')
+            return redirect(url_for('services.tax_payment'))
+
+        amount = float(form.amount.data)
+        if account.balance < amount:
+            flash(f'Insufficient funds. Available: ${account.balance:,.2f}', 'danger')
+            return redirect(url_for('services.tax_payment'))
+
+        try:
+            account.balance -= amount
+            ref_id = Transaction.generate_reference()
+            txn = Transaction(
+                reference_id=ref_id,
+                account_id=account.id,
+                transaction_type='tax_payment',
+                amount=amount,
+                balance_after=account.balance,
+                description=f'Tax: {form.tax_type.data} (TIN: {form.tin_number.data}, Doc: {form.assessment_number.data})',
+                related_account=f'TIN:{form.tin_number.data}'
+            )
+            db.session.add(txn)
+            db.session.commit()
+            flash(f'Tax payment of {amount:,.2f} Birr processed for TIN {form.tin_number.data}. Official Ref: {ref_id}', 'success')
+            return redirect(url_for('banking.dashboard'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Tax payment failed: {str(e)}', 'danger')
+
+    return render_template('services/tax_payment.html', form=form, accounts=accounts)
+
+
+# ──────────────────────────────────────────────
+# 9.9 My Service
+# ──────────────────────────────────────────────
+@services_bp.route('/my-service', methods=['GET', 'POST'])
+@customer_required
+def my_service():
+    form = MyServiceForm()
+    accounts = Account.query.filter_by(user_id=current_user.id, status='active').all()
+
+    if form.validate_on_submit():
+        account_id = request.form.get('account_id', type=int)
+        account = Account.query.filter_by(id=account_id, user_id=current_user.id).first()
+        if not account:
+            flash('Source account not found.', 'danger')
+            return redirect(url_for('services.my_service'))
+
+        amount = float(form.amount.data)
+        if account.balance < amount:
+            flash(f'Insufficient funds. Available: ${account.balance:,.2f}', 'danger')
+            return redirect(url_for('services.my_service'))
+
+        try:
+            account.balance -= amount
+            ref_id = Transaction.generate_reference()
+            txn = Transaction(
+                reference_id=ref_id,
+                account_id=account.id,
+                transaction_type='my_service',
+                amount=amount,
+                balance_after=account.balance,
+                description=f'My Service: {form.service_name.data} ({form.service_provider.data} - {form.account_reference.data})',
+                related_account=f'{form.service_provider.data}:{form.account_reference.data}'
+            )
+            db.session.add(txn)
+            db.session.commit()
+            flash(f'Payment of {amount:,.2f} Birr for "{form.service_name.data}" processed successfully. Ref: {ref_id}', 'success')
+            return redirect(url_for('banking.dashboard'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Custom service payment failed: {str(e)}', 'danger')
+
+    return render_template('services/my_service.html', form=form, accounts=accounts)
+

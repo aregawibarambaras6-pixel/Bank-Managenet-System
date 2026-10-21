@@ -1,0 +1,61 @@
+{% extends "services/service_base.html" %}
+
+{% block title %}Government Services - CBC Bank{% endblock %}
+{% block icon_bg %}bg-indigo{% endblock %}
+{% block icon %}bi-bank2{% endblock %}
+{% block service_title %}Government Services & Official Fees{% endblock %}
+{% block service_subtitle %}Pay passport, visa, DARA authentication, traffic fines, and municipal services{% endblock %}
+
+{% block service_body %}
+<!-- Sub Navigation -->
+<div class="mb-3 pb-2 border-bottom d-flex justify-content-between align-items-center">
+    <span class="small text-muted"><i class="bi bi-shield-check me-1"></i> Verified government treasury integration</span>
+    <a href="{{ url_for('services.next_services') }}" class="small text-decoration-none text-primary">
+        <i class="bi bi-grid-fill me-1"></i> All Services (Page 2)
+    </a>
+</div>
+
+<form method="POST" action="{{ url_for('services.government_services') }}">
+    {{ form.hidden_tag() }}
+
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">From Account</label>
+        <select name="account_id" class="form-select" required>
+            {% for acc in accounts %}
+            <option value="{{ acc.id }}">{{ acc.account_number }} ({{ acc.account_type.title() }}) - ${{ "{:,.2f}".format(acc.balance) }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Government Agency / Service</label>
+        {{ form.agency(class="form-select") }}
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Application / Voucher / Notice ID</label>
+        {{ form.application_number(class="form-control", placeholder="e.g. ICS-892147 or Fine Notice ID") }}
+        <div class="form-text small">Enter the official reference code provided on your application portal.</div>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Citizen / Applicant Full Name</label>
+        {{ form.applicant_name(class="form-control", placeholder="e.g. Almaz Ayana") }}
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Fee Amount (Birr)</label>
+        {{ form.amount(class="form-control form-control-lg", placeholder="0.00", min="1", step="0.01") }}
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Remark (Optional)</label>
+        {{ form.description(class="form-control", placeholder="e.g. Urgent Passport Renewal Fee") }}
+    </div>
+
+    <div class="d-flex gap-2 pt-2">
+        <a href="{{ url_for('services.next_services') }}" class="btn btn-light rounded-pill px-4">Cancel</a>
+        {{ form.submit(class="btn btn-emerald rounded-pill px-4 text-white flex-grow-1") }}
+    </div>
+</form>
+{% endblock %}

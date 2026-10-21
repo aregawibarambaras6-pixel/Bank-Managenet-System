@@ -92,99 +92,251 @@
         </div>
 
         <!-- ═══════════ CBC SERVICES GRID ═══════════ -->
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="fw-bold text-navy-dark mb-0">
-                <i class="bi bi-grid-3x3-gap text-emerald me-2"></i>Banking Services
-            </h4>
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div>
+                <h4 class="fw-bold text-navy-dark mb-0">
+                    <i class="bi bi-grid-3x3-gap text-emerald me-2"></i>Banking Services
+                </h4>
+            </div>
+            <!-- Page Selector Tabs -->
+            <ul class="nav nav-pills bg-white p-1 rounded-pill shadow-sm border" id="servicesTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active rounded-pill px-3 py-1 small fw-semibold" id="page1-tab" data-bs-toggle="pill" data-bs-target="#services-page1" type="button" role="tab" aria-selected="true">
+                        <i class="bi bi-1-circle me-1"></i> Core (1-8 &amp; Next)
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link rounded-pill px-3 py-1 small fw-semibold" id="page2-tab" data-bs-toggle="pill" data-bs-target="#services-page2" type="button" role="tab" aria-selected="false">
+                        <i class="bi bi-2-circle me-1"></i> Next Page (1-9 &amp; Back)
+                    </button>
+                </li>
+            </ul>
         </div>
-        <div class="row g-3 mb-5">
-            <!-- 1. My Account -->
-            <div class="col-lg-3 col-md-4 col-6">
-                <a href="{{ url_for('services.my_account') }}" class="text-decoration-none">
-                    <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
-                        <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
-                            <i class="bi bi-person-circle fs-4 text-white"></i>
-                        </div>
-                        <span class="fw-semibold text-navy-dark small">My Account</span>
+
+        <div class="tab-content mb-5" id="servicesTabContent">
+            <!-- ───────── PAGE 1: CORE SERVICES (1 to 8 + 9. Next) ───────── -->
+            <div class="tab-pane fade show active" id="services-page1" role="tabpanel" aria-labelledby="page1-tab">
+                <div class="row g-3">
+                    <!-- 1. My Account -->
+                    <div class="col-lg-3 col-md-4 col-6">
+                        <a href="{{ url_for('services.my_account') }}" class="text-decoration-none">
+                            <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
+                                <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                                    <i class="bi bi-person-circle fs-4 text-white"></i>
+                                </div>
+                                <span class="fw-semibold text-navy-dark small">1. My Account</span>
+                            </div>
+                        </a>
                     </div>
-                </a>
+                    <!-- 2. Transfer to CBC Account -->
+                    <div class="col-lg-3 col-md-4 col-6">
+                        <a href="{{ url_for('services.cbc_transfer') }}" class="text-decoration-none">
+                            <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
+                                <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #10b981, #059669);">
+                                    <i class="bi bi-bank fs-4 text-white"></i>
+                                </div>
+                                <span class="fw-semibold text-navy-dark small">2. Transfer to CBC</span>
+                            </div>
+                        </a>
+                    </div>
+                    <!-- 3. Beneficiary -->
+                    <div class="col-lg-3 col-md-4 col-6">
+                        <a href="{{ url_for('services.beneficiaries') }}" class="text-decoration-none">
+                            <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
+                                <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                                    <i class="bi bi-people fs-4 text-white"></i>
+                                </div>
+                                <span class="fw-semibold text-navy-dark small">3. Beneficiary</span>
+                            </div>
+                        </a>
+                    </div>
+                    <!-- 4. Own Account Transfer -->
+                    <div class="col-lg-3 col-md-4 col-6">
+                        <a href="{{ url_for('services.own_transfer') }}" class="text-decoration-none">
+                            <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
+                                <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #14b8a6, #0d9488);">
+                                    <i class="bi bi-arrow-left-right fs-4 text-white"></i>
+                                </div>
+                                <span class="fw-semibold text-navy-dark small">4. Own Account Transfer</span>
+                            </div>
+                        </a>
+                    </div>
+                    <!-- 5. CBC Cash Out -->
+                    <div class="col-lg-3 col-md-4 col-6">
+                        <a href="{{ url_for('services.cbc_cashout') }}" class="text-decoration-none">
+                            <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
+                                <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                                    <i class="bi bi-cash-coin fs-4 text-white"></i>
+                                </div>
+                                <span class="fw-semibold text-navy-dark small">5. CBC Cash Out</span>
+                            </div>
+                        </a>
+                    </div>
+                    <!-- 6. ATM Cash Out -->
+                    <div class="col-lg-3 col-md-4 col-6">
+                        <a href="{{ url_for('services.atm_cashout') }}" class="text-decoration-none">
+                            <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
+                                <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                                    <i class="bi bi-credit-card-2-back fs-4 text-white"></i>
+                                </div>
+                                <span class="fw-semibold text-navy-dark small">6. ATM Cash Out</span>
+                            </div>
+                        </a>
+                    </div>
+                    <!-- 7. Other Transfer -->
+                    <div class="col-lg-3 col-md-4 col-6">
+                        <a href="{{ url_for('services.other_transfer') }}" class="text-decoration-none">
+                            <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
+                                <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">
+                                    <i class="bi bi-building fs-4 text-white"></i>
+                                </div>
+                                <span class="fw-semibold text-navy-dark small">7. Other Transfer</span>
+                            </div>
+                        </a>
+                    </div>
+                    <!-- 8. Airtime -->
+                    <div class="col-lg-3 col-md-4 col-6">
+                        <a href="{{ url_for('services.airtime') }}" class="text-decoration-none">
+                            <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
+                                <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #ec4899, #db2777);">
+                                    <i class="bi bi-phone fs-4 text-white"></i>
+                                </div>
+                                <span class="fw-semibold text-navy-dark small">8. Airtime</span>
+                            </div>
+                        </a>
+                    </div>
+                    <!-- 9. Next -->
+                    <div class="col-lg-3 col-md-4 col-6">
+                        <a href="{{ url_for('services.next_services') }}" class="text-decoration-none" id="dashboardNextBtn">
+                            <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100 border border-2 border-emerald-subtle" style="background: linear-gradient(180deg, #ffffff, #f0fdf4);">
+                                <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #059669, #047857); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);">
+                                    <i class="bi bi-arrow-right-circle fs-4 text-white"></i>
+                                </div>
+                                <span class="fw-bold text-emerald-dark small d-flex align-items-center justify-content-center gap-1">
+                                    9. Next <i class="bi bi-arrow-right"></i>
+                                </span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
             </div>
-            <!-- 2. Transfer to CBC Account -->
-            <div class="col-lg-3 col-md-4 col-6">
-                <a href="{{ url_for('services.cbc_transfer') }}" class="text-decoration-none">
-                    <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
-                        <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #10b981, #059669);">
-                            <i class="bi bi-bank fs-4 text-white"></i>
-                        </div>
-                        <span class="fw-semibold text-navy-dark small">Transfer to CBC</span>
+
+            <!-- ───────── PAGE 2: EXTENDED SERVICES (1 to 9 + 10. Back) ───────── -->
+            <div class="tab-pane fade" id="services-page2" role="tabpanel" aria-labelledby="page2-tab">
+                <div class="row g-3">
+                    <!-- 1. Bills and Utilities -->
+                    <div class="col-lg-3 col-md-4 col-6">
+                        <a href="{{ url_for('services.bills_utilities') }}" class="text-decoration-none">
+                            <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
+                                <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #0ea5e9, #0284c7);">
+                                    <i class="bi bi-lightning-charge fs-4 text-white"></i>
+                                </div>
+                                <span class="fw-semibold text-navy-dark small">1. Bills & Utilities</span>
+                            </div>
+                        </a>
                     </div>
-                </a>
-            </div>
-            <!-- 3. Beneficiary -->
-            <div class="col-lg-3 col-md-4 col-6">
-                <a href="{{ url_for('services.beneficiaries') }}" class="text-decoration-none">
-                    <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
-                        <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
-                            <i class="bi bi-people fs-4 text-white"></i>
-                        </div>
-                        <span class="fw-semibold text-navy-dark small">Beneficiary</span>
+                    <!-- 2. Travel -->
+                    <div class="col-lg-3 col-md-4 col-6">
+                        <a href="{{ url_for('services.travel') }}" class="text-decoration-none">
+                            <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
+                                <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                                    <i class="bi bi-airplane-engines fs-4 text-white"></i>
+                                </div>
+                                <span class="fw-semibold text-navy-dark small">2. Travel</span>
+                            </div>
+                        </a>
                     </div>
-                </a>
-            </div>
-            <!-- 4. Own Account Transfer -->
-            <div class="col-lg-3 col-md-4 col-6">
-                <a href="{{ url_for('services.own_transfer') }}" class="text-decoration-none">
-                    <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
-                        <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #14b8a6, #0d9488);">
-                            <i class="bi bi-arrow-left-right fs-4 text-white"></i>
-                        </div>
-                        <span class="fw-semibold text-navy-dark small">Own Account Transfer</span>
+                    <!-- 3. Shopping -->
+                    <div class="col-lg-3 col-md-4 col-6">
+                        <a href="{{ url_for('services.shopping') }}" class="text-decoration-none">
+                            <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
+                                <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #10b981, #047857);">
+                                    <i class="bi bi-bag-check fs-4 text-white"></i>
+                                </div>
+                                <span class="fw-semibold text-navy-dark small">3. Shopping</span>
+                            </div>
+                        </a>
                     </div>
-                </a>
-            </div>
-            <!-- 5. CBC Cash Out -->
-            <div class="col-lg-3 col-md-4 col-6">
-                <a href="{{ url_for('services.cbc_cashout') }}" class="text-decoration-none">
-                    <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
-                        <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
-                            <i class="bi bi-cash-coin fs-4 text-white"></i>
-                        </div>
-                        <span class="fw-semibold text-navy-dark small">CBC Cash Out</span>
+                    <!-- 4. Government Services -->
+                    <div class="col-lg-3 col-md-4 col-6">
+                        <a href="{{ url_for('services.government_services') }}" class="text-decoration-none">
+                            <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
+                                <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #6366f1, #4338ca);">
+                                    <i class="bi bi-bank2 fs-4 text-white"></i>
+                                </div>
+                                <span class="fw-semibold text-navy-dark small">4. Government Services</span>
+                            </div>
+                        </a>
                     </div>
-                </a>
-            </div>
-            <!-- 6. ATM Cash Out -->
-            <div class="col-lg-3 col-md-4 col-6">
-                <a href="{{ url_for('services.atm_cashout') }}" class="text-decoration-none">
-                    <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
-                        <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
-                            <i class="bi bi-credit-card-2-back fs-4 text-white"></i>
-                        </div>
-                        <span class="fw-semibold text-navy-dark small">ATM Cash Out</span>
+                    <!-- 5. Subscriptions -->
+                    <div class="col-lg-3 col-md-4 col-6">
+                        <a href="{{ url_for('services.subscriptions') }}" class="text-decoration-none">
+                            <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
+                                <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #ec4899, #be185d);">
+                                    <i class="bi bi-tv fs-4 text-white"></i>
+                                </div>
+                                <span class="fw-semibold text-navy-dark small">5. Subscriptions</span>
+                            </div>
+                        </a>
                     </div>
-                </a>
-            </div>
-            <!-- 7. Other Transfer -->
-            <div class="col-lg-3 col-md-4 col-6">
-                <a href="{{ url_for('services.other_transfer') }}" class="text-decoration-none">
-                    <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
-                        <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">
-                            <i class="bi bi-building fs-4 text-white"></i>
-                        </div>
-                        <span class="fw-semibold text-navy-dark small">Other Transfer</span>
+                    <!-- 6. Pay For -->
+                    <div class="col-lg-3 col-md-4 col-6">
+                        <a href="{{ url_for('services.pay_for') }}" class="text-decoration-none">
+                            <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
+                                <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #f59e0b, #b45309);">
+                                    <i class="bi bi-receipt-cutoff fs-4 text-white"></i>
+                                </div>
+                                <span class="fw-semibold text-navy-dark small">6. Pay For</span>
+                            </div>
+                        </a>
                     </div>
-                </a>
-            </div>
-            <!-- 8. Airtime -->
-            <div class="col-lg-3 col-md-4 col-6">
-                <a href="{{ url_for('services.airtime') }}" class="text-decoration-none">
-                    <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
-                        <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #ec4899, #db2777);">
-                            <i class="bi bi-phone fs-4 text-white"></i>
-                        </div>
-                        <span class="fw-semibold text-navy-dark small">Airtime</span>
+                    <!-- 7. Donation -->
+                    <div class="col-lg-3 col-md-4 col-6">
+                        <a href="{{ url_for('services.donation') }}" class="text-decoration-none">
+                            <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
+                                <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #ef4444, #b91c1c);">
+                                    <i class="bi bi-heart-fill fs-4 text-white"></i>
+                                </div>
+                                <span class="fw-semibold text-navy-dark small">7. Donation</span>
+                            </div>
+                        </a>
                     </div>
-                </a>
+                    <!-- 8. Tax Payment -->
+                    <div class="col-lg-3 col-md-4 col-6">
+                        <a href="{{ url_for('services.tax_payment') }}" class="text-decoration-none">
+                            <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
+                                <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #14b8a6, #0f766e);">
+                                    <i class="bi bi-file-earmark-ruled fs-4 text-white"></i>
+                                </div>
+                                <span class="fw-semibold text-navy-dark small">8. Tax Payment</span>
+                            </div>
+                        </a>
+                    </div>
+                    <!-- 9. My Service -->
+                    <div class="col-lg-3 col-md-4 col-6">
+                        <a href="{{ url_for('services.my_service') }}" class="text-decoration-none">
+                            <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100">
+                                <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
+                                    <i class="bi bi-star-fill fs-4 text-white"></i>
+                                </div>
+                                <span class="fw-semibold text-navy-dark small">9. My Service</span>
+                            </div>
+                        </a>
+                    </div>
+                    <!-- 10. Back -->
+                    <div class="col-lg-3 col-md-4 col-6">
+                        <a href="javascript:void(0);" onclick="document.getElementById('page1-tab').click();" class="text-decoration-none">
+                            <div class="card border-0 shadow-sm rounded-4 p-3 text-center service-tile h-100 border border-2 border-secondary-subtle" style="background: #f8fafc;">
+                                <div class="service-icon mx-auto mb-2" style="background: linear-gradient(135deg, #64748b, #334155);">
+                                    <i class="bi bi-arrow-left fs-4 text-white"></i>
+                                </div>
+                                <span class="fw-bold text-secondary small d-flex align-items-center justify-content-center gap-1">
+                                    <i class="bi bi-arrow-left"></i> 10. Back
+                                </span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
 

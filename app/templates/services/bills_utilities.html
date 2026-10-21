@@ -1,0 +1,57 @@
+{% extends "services/service_base.html" %}
+
+{% block title %}Bills & Utilities - CBC Bank{% endblock %}
+{% block icon_bg %}bg-sky{% endblock %}
+{% block icon %}bi-lightning-charge{% endblock %}
+{% block service_title %}Bills & Utilities Payment{% endblock %}
+{% block service_subtitle %}Settle electricity, water, telecoms, and internet bills securely{% endblock %}
+
+{% block service_body %}
+<!-- Sub Navigation -->
+<div class="mb-3 pb-2 border-bottom d-flex justify-content-between align-items-center">
+    <span class="small text-muted"><i class="bi bi-info-circle me-1"></i> Instant electronic receipt & automatic reconciliation</span>
+    <a href="{{ url_for('services.next_services') }}" class="small text-decoration-none text-primary">
+        <i class="bi bi-grid-fill me-1"></i> All Services (Page 2)
+    </a>
+</div>
+
+<form method="POST" action="{{ url_for('services.bills_utilities') }}">
+    {{ form.hidden_tag() }}
+
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">From Account</label>
+        <select name="account_id" class="form-select" required>
+            {% for acc in accounts %}
+            <option value="{{ acc.id }}">{{ acc.account_number }} ({{ acc.account_type.title() }}) - ${{ "{:,.2f}".format(acc.balance) }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Biller / Utility Company</label>
+        {{ form.biller_category(class="form-select") }}
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Customer / Contract / Meter Number</label>
+        {{ form.bill_reference(class="form-control", placeholder="e.g. 1000382910 or Meter #") }}
+        <div class="form-text small">Found on your physical or electronic billing statement.</div>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Bill Amount (Birr)</label>
+        {{ form.amount(class="form-control form-control-lg", placeholder="0.00", min="1", step="0.01") }}
+        <small class="text-muted">Min: 1.00 Birr &middot; Max: 500,000.00 Birr</small>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Remark / Description (Optional)</label>
+        {{ form.description(class="form-control", placeholder="e.g. May Electricity Bill") }}
+    </div>
+
+    <div class="d-flex gap-2 pt-2">
+        <a href="{{ url_for('services.next_services') }}" class="btn btn-light rounded-pill px-4">Cancel</a>
+        {{ form.submit(class="btn btn-emerald rounded-pill px-4 text-white flex-grow-1") }}
+    </div>
+</form>
+{% endblock %}

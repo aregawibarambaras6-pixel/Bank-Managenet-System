@@ -80,13 +80,57 @@
                                         <span class="badge bg-warning-subtle text-dark rounded-pill px-2 py-1">
                                             <i class="bi bi-arrow-up-right me-1"></i>Withdrawal
                                         </span>
-                                    {% elif t.transaction_type == 'transfer_out' %}
+                                    {% elif t.transaction_type in ('transfer_out', 'cbc_transfer_out') %}
                                         <span class="badge bg-danger-subtle text-danger rounded-pill px-2 py-1">
                                             <i class="bi bi-box-arrow-up-right me-1"></i>Transfer Out
                                         </span>
-                                    {% elif t.transaction_type == 'transfer_in' %}
+                                    {% elif t.transaction_type in ('transfer_in', 'cbc_transfer_in') %}
                                         <span class="badge bg-info-subtle text-info rounded-pill px-2 py-1">
                                             <i class="bi bi-box-arrow-in-down-left me-1"></i>Transfer In
+                                        </span>
+                                    {% elif t.transaction_type == 'airtime' %}
+                                        <span class="badge rounded-pill px-2 py-1" style="background-color: #fce7f3; color: #be185d;">
+                                            <i class="bi bi-phone me-1"></i>Airtime
+                                        </span>
+                                    {% elif t.transaction_type == 'bill_payment' %}
+                                        <span class="badge rounded-pill px-2 py-1" style="background-color: #e0f2fe; color: #0369a1;">
+                                            <i class="bi bi-lightning-charge me-1"></i>Utility Bill
+                                        </span>
+                                    {% elif t.transaction_type == 'travel' %}
+                                        <span class="badge rounded-pill px-2 py-1" style="background-color: #dbeafe; color: #1d4ed8;">
+                                            <i class="bi bi-airplane me-1"></i>Travel
+                                        </span>
+                                    {% elif t.transaction_type == 'shopping' %}
+                                        <span class="badge rounded-pill px-2 py-1" style="background-color: #d1fae5; color: #047857;">
+                                            <i class="bi bi-bag-check me-1"></i>Shopping
+                                        </span>
+                                    {% elif t.transaction_type == 'gov_service' %}
+                                        <span class="badge rounded-pill px-2 py-1" style="background-color: #e0e7ff; color: #4338ca;">
+                                            <i class="bi bi-bank2 me-1"></i>Govt Service
+                                        </span>
+                                    {% elif t.transaction_type == 'subscription' %}
+                                        <span class="badge rounded-pill px-2 py-1" style="background-color: #fdf2f8; color: #be185d;">
+                                            <i class="bi bi-tv me-1"></i>Subscription
+                                        </span>
+                                    {% elif t.transaction_type == 'pay_for' %}
+                                        <span class="badge rounded-pill px-2 py-1" style="background-color: #fef3c7; color: #b45309;">
+                                            <i class="bi bi-receipt me-1"></i>Pay For
+                                        </span>
+                                    {% elif t.transaction_type == 'donation' %}
+                                        <span class="badge rounded-pill px-2 py-1" style="background-color: #fee2e2; color: #b91c1c;">
+                                            <i class="bi bi-heart me-1"></i>Donation
+                                        </span>
+                                    {% elif t.transaction_type == 'tax_payment' %}
+                                        <span class="badge rounded-pill px-2 py-1" style="background-color: #ccfbf1; color: #0f766e;">
+                                            <i class="bi bi-file-earmark-ruled me-1"></i>Tax Payment
+                                        </span>
+                                    {% elif t.transaction_type == 'my_service' %}
+                                        <span class="badge rounded-pill px-2 py-1" style="background-color: #ede9fe; color: #6d28d9;">
+                                            <i class="bi bi-star me-1"></i>My Service
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-1">
+                                            <i class="bi bi-arrow-left-right me-1"></i>{{ t.transaction_type.replace('_', ' ').title() }}
                                         </span>
                                     {% endif %}
                                 </td>

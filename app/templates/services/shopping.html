@@ -1,0 +1,61 @@
+{% extends "services/service_base.html" %}
+
+{% block title %}Merchant Shopping Payment - CBC Bank{% endblock %}
+{% block icon_bg %}bg-emerald{% endblock %}
+{% block icon %}bi-bag-check{% endblock %}
+{% block service_title %}Merchant & Shopping Payment{% endblock %}
+{% block service_subtitle %}Pay supermarkets, retailers, pharmacies, and online merchants directly{% endblock %}
+
+{% block service_body %}
+<!-- Sub Navigation -->
+<div class="mb-3 pb-2 border-bottom d-flex justify-content-between align-items-center">
+    <span class="small text-muted"><i class="bi bi-shop me-1"></i> Cashless, instant merchant checkout</span>
+    <a href="{{ url_for('services.next_services') }}" class="small text-decoration-none text-primary">
+        <i class="bi bi-grid-fill me-1"></i> All Services (Page 2)
+    </a>
+</div>
+
+<form method="POST" action="{{ url_for('services.shopping') }}">
+    {{ form.hidden_tag() }}
+
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">From Account</label>
+        <select name="account_id" class="form-select" required>
+            {% for acc in accounts %}
+            <option value="{{ acc.id }}">{{ acc.account_number }} ({{ acc.account_type.title() }}) - ${{ "{:,.2f}".format(acc.balance) }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Merchant Category</label>
+        {{ form.merchant_type(class="form-select") }}
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Merchant Code / Till Number</label>
+        {{ form.merchant_code(class="form-control", placeholder="e.g. 50512 or Store Till ID") }}
+        <div class="form-text small">Displayed at checkout counter or store banner.</div>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Invoice / Order Number</label>
+        {{ form.invoice_number(class="form-control", placeholder="e.g. INV-88219 or Cart #") }}
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Total Amount (Birr)</label>
+        {{ form.amount(class="form-control form-control-lg", placeholder="0.00", min="1", step="0.01") }}
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label small fw-semibold text-muted">Remark (Optional)</label>
+        {{ form.description(class="form-control", placeholder="e.g. Groceries purchase") }}
+    </div>
+
+    <div class="d-flex gap-2 pt-2">
+        <a href="{{ url_for('services.next_services') }}" class="btn btn-light rounded-pill px-4">Cancel</a>
+        {{ form.submit(class="btn btn-emerald rounded-pill px-4 text-white flex-grow-1") }}
+    </div>
+</form>
+{% endblock %}
