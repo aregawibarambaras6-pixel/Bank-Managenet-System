@@ -28,7 +28,7 @@ def seed_demo_data():
 
     # Checking Account
     checking = Account(
-        account_number='4040100001',
+        account_number='1000100001000',
         user_id=customer.id,
         account_type='checking',
         balance=5420.50,
@@ -37,7 +37,7 @@ def seed_demo_data():
     )
     # Savings Account
     savings = Account(
-        account_number='4040200002',
+        account_number='1000200002000',
         user_id=customer.id,
         account_type='savings',
         balance=14850.00,
@@ -118,7 +118,7 @@ def seed_demo_data():
     db.session.flush()
 
     account2 = Account(
-        account_number='4040300003',
+        account_number='1000300003000',
         user_id=customer2.id,
         account_type='checking',
         balance=3200.00,

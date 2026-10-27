@@ -19,9 +19,9 @@ class Account(db.Model):
 
     @staticmethod
     def generate_account_number():
-        """Generate unique 10-digit bank account number starting with 4040."""
+        """Generate unique 13-digit CBC bank account number starting with 1000 (e.g. 1000547919649)."""
         while True:
-            number = f"4040{random.randint(100000, 999999)}"
+            number = f"1000{random.randint(100000000, 999999999)}"
             if not Account.query.filter_by(account_number=number).first():
                 return number
 

@@ -124,7 +124,7 @@ def transfer():
         return redirect(url_for('banking.dashboard'))
 
     if form.validate_on_submit():
-        recipient_number = form.recipient_account.data.strip()
+        recipient_number = form.recipient_account.data.strip().replace(' ', '')
         amount = float(form.amount.data)
 
         # Validation 1: Prevent transferring to same account

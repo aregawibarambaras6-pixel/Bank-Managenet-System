@@ -53,7 +53,7 @@ def cbc_transfer():
             flash('Source account not found.', 'danger')
             return redirect(url_for('services.cbc_transfer'))
 
-        recipient_number = form.recipient_account.data.strip()
+        recipient_number = form.recipient_account.data.strip().replace(' ', '')
         amount = float(form.amount.data)
 
         if recipient_number == sender.account_number:
@@ -123,7 +123,7 @@ def add_beneficiary():
         b = Beneficiary(
             user_id=current_user.id,
             name=form.name.data.strip(),
-            account_number=form.account_number.data.strip(),
+            account_number=form.account_number.data.strip().replace(' ', ''),
             bank_name=form.bank_name.data
         )
         db.session.add(b)
