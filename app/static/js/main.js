@@ -1,5 +1,6 @@
 /**
  * Apex Bank Management System - Client-side Interactive Script
+ * Integrates interactive UI, real-time clock, copy utilities, and polyglot engine helpers
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -8,6 +9,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. Smooth Scroll for internal anchor links
     initSmoothScroll();
+
+    // 3. Auto-dismiss alerts after 6 seconds
+    initAutoDismissAlerts();
 });
 
 /**
@@ -58,10 +62,31 @@ function initSmoothScroll() {
 }
 
 /**
- * Interactive Feedback for Portal login buttons in Phase 1
- * @param {string} roleName 
+ * Auto dismiss alerts after timeout
  */
-function showPortalNotice(roleName) {
-    const message = `Welcome to the ${roleName} Portal!\n\nAuthentication & dashboard features for ${roleName} will be unlocked in Phase 2.`;
-    alert(message);
+function initAutoDismissAlerts() {
+    const alerts = document.querySelectorAll('.alert:not(.alert-permanent)');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            try {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            } catch (e) {
+                alert.style.display = 'none';
+            }
+        }, 6000);
+    });
+}
+
+/**
+ * Quick clipboard copy helper with visual indicator
+ */
+function copyToClipboard(text, label = 'Copied!') {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert(`${label}: ${text}`);
+        }).catch(err => {
+            console.error('Copy error', err);
+        });
+    }
 }

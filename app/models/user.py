@@ -12,6 +12,7 @@ class User(UserMixin, db.Model):
     full_name = db.Column(db.String(100), nullable=True)
     password_hash = db.Column(db.String(256), nullable=False)
     role = db.Column(db.String(20), default='customer', nullable=False)  # 'customer', 'manager', 'admin'
+    profile_picture = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -34,6 +35,18 @@ class User(UserMixin, db.Model):
     @property
     def is_customer(self):
         return self.role == 'customer'
+
+    @property
+    def avatar(self):
+        if self.profile_picture:
+            return self.profile_picture
+        if self.role == 'admin':
+            return '/static/img/avatars/admin.svg'
+        elif self.role == 'manager':
+            return '/static/img/avatars/manager.svg'
+        elif self.username == 'jordan':
+            return '/static/img/avatars/customer2.svg'
+        return '/static/img/avatars/customer.svg'
 
     @property
     def primary_account(self):

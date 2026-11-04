@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="creBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ec4899" />
+      <stop offset="100%" stop-color="#be185d" />
+    </linearGradient>
+  </defs>
+  <circle cx="60" cy="60" r="58" fill="url(#creBg)" stroke="#f472b6" stroke-width="4" />
+  <circle cx="60" cy="60" r="54" fill="#500724" opacity="0.4" />
+  <path d="M 24 112 C 26 84, 42 76, 60 76 C 78 76, 94 84, 96 112 Z" fill="#831843" />
+  <polygon points="60,94 52,76 68,76" fill="#fdf2f8" />
+  <rect x="52" y="64" width="16" height="18" rx="4" fill="#fde68a" />
+  <ellipse cx="60" cy="50" rx="19" ry="22" fill="#fde68a" />
+  <path d="M 38 46 C 36 26, 48 18, 60 18 C 74 18, 84 26, 82 46 C 85 58, 82 66, 78 70 C 76 62, 75 52, 74 46 C 68 34, 52 34, 46 46 C 44 52, 44 62, 42 70 C 38 66, 35 58, 38 46 Z" fill="#701a75" />
+  <ellipse cx="53" cy="48" rx="2" ry="2.5" fill="#0f172a" />
+  <ellipse cx="67" cy="48" rx="2" ry="2.5" fill="#0f172a" />
+  <path d="M 54 60 Q 60 64 66 60" fill="none" stroke="#831843" stroke-width="2" stroke-linecap="round" />
+  <circle cx="95" cy="95" r="14" fill="#ec4899" stroke="#ffffff" stroke-width="2" />
+  <text x="95" y="100" font-size="14" text-anchor="middle" fill="#ffffff">🎨</text>
+</svg>
+

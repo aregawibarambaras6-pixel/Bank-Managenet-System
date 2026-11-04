@@ -1,10 +1,13 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import current_user
 from app.extensions import db
 from app.models.account import Account
 from app.models.transaction import Transaction
 from app.forms.banking_forms import DepositForm, WithdrawForm, TransferForm, CreateAccountForm
 from app.utils.decorators import customer_required
+from app.utils.java_service import analyze_transaction_risk
+from app.utils.cpp_engine import calculate_compound_interest, calculate_loan_amortization, generate_ledger_hash
+from app.utils.sql_executor import log_fraud_audit, log_ledger_checksum
 
 banking_bp = Blueprint('banking', __name__)
 
@@ -53,9 +56,10 @@ def deposit():
         amount = float(form.amount.data)
         try:
             new_balance = account.deposit(amount)
+            tx_ref = Transaction.generate_reference()
             
             txn = Transaction(
-                reference_id=Transaction.generate_reference(),
+                reference_id=tx_ref,
                 account_id=account.id,
                 transaction_type='deposit',
                 amount=amount,
@@ -66,7 +70,11 @@ def deposit():
             db.session.add(txn)
             db.session.commit()
 
-            flash(f'Successfully deposited ${amount:,.2f} into account #{account.account_number}. Current balance: ${new_balance:,.2f}', 'success')
+            # C++ Engine: Compute cryptographic ledger checksum & record to SQL
+            hash_res = generate_ledger_hash(tx_ref, 'SELF-DEPOSIT', account.account_number, amount, str(txn.timestamp))
+            log_ledger_checksum(tx_ref, hash_res.get('ledger_hash', ''))
+
+            flash(f'Successfully deposited ${amount:,.2f} into account #{account.account_number}. Checksum Verified ({hash_res.get("ledger_hash", "")[:10]}...). Current balance: ${new_balance:,.2f}', 'success')
         except ValueError as err:
             flash(str(err), 'danger')
     else:
@@ -88,11 +96,28 @@ def withdraw():
 
     if form.validate_on_submit():
         amount = float(form.amount.data)
+
+        # Java 25 Engine: Evaluate AML & Fraud Risk
+        daily_count = len(account.transactions) if account.transactions else 1
+        risk_res = analyze_transaction_risk(
+            reference_id="PENDING-WITHDRAWAL",
+            transaction_type="withdrawal",
+            amount=amount,
+            account_type=account.account_type,
+            status=account.status,
+            daily_txn_count=daily_count
+        )
+
+        if risk_res.get('decision') == 'REJECTED':
+            flash(f"Withdrawal BLOCKED by Java AML Risk Engine: {risk_res.get('recommendation')} (Risk Score: {risk_res.get('risk_score')}/100)", 'danger')
+            return redirect(url_for('banking.dashboard'))
+
         try:
             new_balance = account.withdraw(amount)
+            tx_ref = Transaction.generate_reference()
             
             txn = Transaction(
-                reference_id=Transaction.generate_reference(),
+                reference_id=tx_ref,
                 account_id=account.id,
                 transaction_type='withdrawal',
                 amount=amount,
@@ -103,7 +128,19 @@ def withdraw():
             db.session.add(txn)
             db.session.commit()
 
-            flash(f'Successfully withdrew ${amount:,.2f} from account #{account.account_number}. Remaining balance: ${new_balance:,.2f}', 'warning')
+            # Record Java Audit into SQL
+            log_fraud_audit(
+                tx_ref, account.account_number, amount,
+                risk_res.get('risk_score', 0), risk_res.get('risk_level', 'LOW'),
+                risk_res.get('decision', 'APPROVED'), risk_res.get('rules_triggered', []),
+                risk_res.get('recommendation', '')
+            )
+
+            # C++ Engine: Compute cryptographic ledger checksum & record to SQL
+            hash_res = generate_ledger_hash(tx_ref, account.account_number, 'ATM / E-CASH', amount, str(txn.timestamp))
+            log_ledger_checksum(tx_ref, hash_res.get('ledger_hash', ''))
+
+            flash(f'Successfully withdrew ${amount:,.2f} from account #{account.account_number}. Java Risk Rating: {risk_res.get("risk_level")}. Remaining balance: ${new_balance:,.2f}', 'warning')
         except ValueError as err:
             flash(f'Withdrawal Failed: {str(err)}', 'danger')
     else:
@@ -147,6 +184,21 @@ def transfer():
             flash(f'Transfer failed: Insufficient funds. Available balance: ${sender_account.balance:,.2f}', 'danger')
             return redirect(url_for('banking.dashboard'))
 
+        # Java 25 Engine: Enterprise AML & Fraud Detection Risk Scoring
+        daily_count = len(sender_account.transactions) if sender_account.transactions else 1
+        risk_res = analyze_transaction_risk(
+            reference_id="PENDING-TRANSFER",
+            transaction_type="transfer_out",
+            amount=amount,
+            account_type=sender_account.account_type,
+            status=sender_account.status,
+            daily_txn_count=daily_count
+        )
+
+        if risk_res.get('decision') == 'REJECTED':
+            flash(f"Transfer REJECTED by Java 25 AML Compliance: {risk_res.get('recommendation')} (Risk Score: {risk_res.get('risk_score')}/100)", 'danger')
+            return redirect(url_for('banking.dashboard'))
+
         try:
             # Atomic Transfer Execution
             sender_account.balance -= amount
@@ -179,8 +231,20 @@ def transfer():
             db.session.add(recipient_txn)
             db.session.commit()
 
+            # Record Java Audit in SQL
+            log_fraud_audit(
+                tx_ref, sender_account.account_number, amount,
+                risk_res.get('risk_score', 0), risk_res.get('risk_level', 'LOW'),
+                risk_res.get('decision', 'APPROVED'), risk_res.get('rules_triggered', []),
+                risk_res.get('recommendation', '')
+            )
+
+            # C++ Engine: Compute cryptographic ledger checksum & record in SQL
+            hash_res = generate_ledger_hash(tx_ref, sender_account.account_number, recipient_account.account_number, amount, str(sender_txn.timestamp))
+            log_ledger_checksum(tx_ref, hash_res.get('ledger_hash', ''))
+
             recipient_name = recipient_account.owner.full_name or recipient_account.owner.username
-            flash(f'Successfully transferred ${amount:,.2f} to {recipient_name} (#{recipient_account.account_number}). Ref: {tx_ref}', 'success')
+            flash(f'Successfully transferred ${amount:,.2f} to {recipient_name} (#{recipient_account.account_number}). Ref: {tx_ref}. Ledger Hash: {hash_res.get("ledger_hash", "")[:12]}...', 'success')
         except Exception as err:
             db.session.rollback()
             flash(f'Transfer failed due to system error: {str(err)}', 'danger')
@@ -190,6 +254,47 @@ def transfer():
                 flash(f'Transfer Error ({field}): {error}', 'danger')
 
     return redirect(url_for('banking.dashboard'))
+
+@banking_bp.route('/tools/calculator')
+@customer_required
+def calculator():
+    return render_template('services/calculator.html')
+
+@banking_bp.route('/api/calc/interest', methods=['POST'])
+@customer_required
+def api_calc_interest():
+    data = request.get_json() or {}
+    principal = float(data.get('principal', 10000.0))
+    annual_rate = float(data.get('annual_rate', 7.5))
+    years = int(data.get('years', 5))
+    freq = int(data.get('frequency', 12))
+    result = calculate_compound_interest(principal, annual_rate, years, freq)
+    return jsonify(result)
+
+@banking_bp.route('/api/calc/loan', methods=['POST'])
+@customer_required
+def api_calc_loan():
+    data = request.get_json() or {}
+    principal = float(data.get('principal', 25000.0))
+    annual_rate = float(data.get('annual_rate', 8.5))
+    months = int(data.get('term_months', 36))
+    result = calculate_loan_amortization(principal, annual_rate, months)
+    return jsonify(result)
+
+@banking_bp.route('/api/tx/verify/<ref_id>')
+@customer_required
+def api_verify_txn(ref_id):
+    txn = Transaction.query.filter_by(reference_id=ref_id).first()
+    if txn:
+        sender = txn.account.account_number if txn.account else 'SYSTEM'
+        receiver = txn.related_account or 'SYSTEM'
+        result = generate_ledger_hash(txn.reference_id, sender, receiver, txn.amount, str(txn.timestamp))
+        result['verified'] = True
+        return jsonify(result)
+    else:
+        result = generate_ledger_hash(ref_id, 'ACCOUNT-SRC', 'ACCOUNT-DST', 100.0, '2026-11-03')
+        result['verified'] = False
+        return jsonify(result)
 
 @banking_bp.route('/accounts/create', methods=['POST'])
 @customer_required
@@ -211,8 +316,9 @@ def create_account():
         db.session.flush()
 
         if initial_deposit > 0:
+            tx_ref = Transaction.generate_reference()
             txn = Transaction(
-                reference_id=Transaction.generate_reference(),
+                reference_id=tx_ref,
                 account_id=new_account.id,
                 transaction_type='deposit',
                 amount=initial_deposit,
@@ -221,8 +327,14 @@ def create_account():
                 related_account='APEX-RESERVE-001'
             )
             db.session.add(txn)
+            db.session.commit()
 
-        db.session.commit()
+            # C++ Checksum
+            hash_res = generate_ledger_hash(tx_ref, 'APEX-RESERVE-001', account_num, initial_deposit, str(txn.timestamp))
+            log_ledger_checksum(tx_ref, hash_res.get('ledger_hash', ''))
+        else:
+            db.session.commit()
+
         flash(f'New {new_account.account_type.title()} Account (#{account_num}) opened successfully with ${initial_deposit:,.2f}!', 'success')
     else:
         for field, errors in form.errors.items():

@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="custBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+    <linearGradient id="custSkin" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fcd34d" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+    <linearGradient id="custHair" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+    <linearGradient id="custShirt" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#1d4ed8" />
+    </linearGradient>
+    <filter id="custShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Outer Ring & Background -->
+  <circle cx="60" cy="60" r="58" fill="url(#custBg)" stroke="#34d399" stroke-width="4" filter="url(#custShadow)" />
+  
+  <!-- Subtle inner background highlight -->
+  <circle cx="60" cy="60" r="54" fill="#064e3b" opacity="0.4" />
+
+  <!-- Shoulders & Shirt -->
+  <path d="M 24 112 C 26 84, 42 78, 60 78 C 78 78, 94 84, 96 112 Z" fill="url(#custShirt)" />
+  <!-- Shirt Collar -->
+  <polygon points="60,92 50,78 70,78" fill="#ffffff" opacity="0.9" />
+
+  <!-- Neck -->
+  <rect x="52" y="66" width="16" height="18" rx="4" fill="url(#custSkin)" />
+
+  <!-- Head -->
+  <ellipse cx="60" cy="52" rx="20" ry="24" fill="url(#custSkin)" />
+
+  <!-- Hair -->
+  <path d="M 40 48 C 38 32, 50 24, 60 24 C 72 24, 82 32, 80 48 C 74 38, 68 36, 60 36 C 50 36, 44 40, 40 48 Z" fill="url(#custHair)" />
+
+  <!-- Modern Glasses -->
+  <rect x="45" y="46" width="12" height="9" rx="3" fill="none" stroke="#0f172a" stroke-width="2.5" />
+  <rect x="63" y="46" width="12" height="9" rx="3" fill="none" stroke="#0f172a" stroke-width="2.5" />
+  <line x1="57" y1="50" x2="63" y2="50" stroke="#0f172a" stroke-width="2.5" />
+
+  <!-- Smile -->
+  <path d="M 54 64 Q 60 69 66 64" fill="none" stroke="#92400e" stroke-width="2" stroke-linecap="round" />
+
+  <!-- Customer Badge Indicator -->
+  <circle cx="95" cy="95" r="14" fill="#10b981" stroke="#ffffff" stroke-width="2" />
+  <path d="M 91 95 L 94 98 L 100 92" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+</svg>
+

@@ -82,14 +82,24 @@ The application automatically seeds realistic demo data on the first run:
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Polyglot Tech Stack (7 Integrated Technologies)
 
-- **Backend Framework**: [Flask](https://flask.palletsprojects.com/) (Python 3.10+)
-- **ORM & Database**: [SQLAlchemy](https://www.sqlalchemy.org/) & [Flask-SQLAlchemy](https://flask-sqlalchemy.palletsprojects.com/) with SQLite (configurable to PostgreSQL / MySQL)
-- **Authentication**: [Flask-Login](https://flask-login.readthedocs.io/) with salted password hashing ([Werkzeug](https://werkzeug.palletsprojects.com/))
-- **Form Handling & Validation**: [Flask-WTF](https://flask-wtf.readthedocs.io/) & [WTForms](https://wtforms.readthedocs.io/)
-- **Templating**: Jinja2 with modern modular layouts, cards, and modal dialogs
-- **Frontend / Styling**: Vanilla CSS design system with responsive grid layout and dark-mode accents
+This project combines 7 core software engineering technologies into an enterprise banking platform:
+
+1. **🐍 Python (Flask 3.1 & Python 3.14)**:
+   - Central application server, routing, blueprints, role-based access control (RBAC), and session management.
+2. **⚡ C++ (C++ 14 Native Binary Engine)**:
+   - High-performance financial computations: compound interest projections, loan amortization schedules (EMI), and 64-bit cryptographic ledger integrity checksums (`engine/bank_engine.cpp`).
+3. **☕ Java (Java 25 Enterprise Risk Engine)**:
+   - Automated Anti-Money Laundering (AML), transaction structuring checks, velocity monitoring, and risk scoring (`services/FraudDetectionService.java`).
+4. **🗄️ Relational Database & SQL (SQLite DDL & Queries)**:
+   - Direct SQL schema initialization, analytical queries, audit logs, and checksum tables (`database/schema.sql`, `database/queries.sql`, and Admin SQL Console).
+5. **🌐 HTML5**:
+   - Modern Jinja2 template architecture, semantic layouts, dashboard cards, and interactive modal dialogs (`app/templates/`).
+6. **🎨 CSS3**:
+   - Custom dark navy and emerald design system, responsive grid, glassmorphic cards, and typography (`app/static/css/style.css`).
+7. **⚡ JavaScript (ES6+)**:
+   - Asynchronous AJAX computations (Fetch API), real-time system clock, dynamic form validations, and interactive calculator widgets (`app/static/js/main.js`).
 
 ---
 

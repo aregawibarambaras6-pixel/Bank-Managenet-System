@@ -1,13 +1,14 @@
 """
 Administrator Blueprint for Apex Bank Management System.
-Exclusively handles system oversight, staff administration, user role management, and audit logs.
+Exclusively handles system oversight, staff administration, user role management, audit logs, and direct SQL queries.
 """
-from flask import Blueprint, render_template, redirect, url_for, flash, request, abort
+from flask import Blueprint, render_template, redirect, url_for, flash, request, abort, jsonify
 from app.extensions import db
 from app.models.user import User
 from app.models.account import Account
 from app.models.transaction import Transaction
 from app.utils.decorators import admin_required
+from app.utils.sql_executor import execute_raw_query
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -52,6 +53,19 @@ def dashboard():
         search_query=search_query,
         role_filter=role_filter
     )
+
+@admin_bp.route('/sql-console')
+@admin_required
+def sql_console():
+    return render_template('admin/sql_console.html')
+
+@admin_bp.route('/api/sql', methods=['POST'])
+@admin_required
+def api_run_sql():
+    data = request.get_json() or {}
+    query_text = data.get('query', '')
+    result = execute_raw_query(query_text)
+    return jsonify(result)
 
 @admin_bp.route('/user/<int:user_id>/update-role', methods=['POST'])
 @admin_required

@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}SQL Analytics & Database Console - Admin Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-5 py-4">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-1 rounded-pill font-monospace">
+                    <i class="bi bi-database me-1"></i> Direct SQL Engine
+                </span>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill font-monospace">
+                    <i class="bi bi-shield-lock me-1"></i> Admin Privileges Only
+                </span>
+            </div>
+            <h2 class="text-white fw-bold mb-1">Database & SQL Query Console</h2>
+            <p class="text-secondary mb-0">Execute relational SQL queries, inspect table schemas, and analyze audit logs directly from SQLite database.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-light rounded-pill px-4">
+                <i class="bi bi-speedometer2 me-1"></i> Admin Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- SQL Query Editor -->
+        <div class="col-lg-5">
+            <div class="card bg-navy-card border border-navy-light rounded-4 p-4 shadow-sm h-100">
+                <h5 class="text-white fw-semibold mb-3">
+                    <i class="bi bi-terminal me-2 text-warning"></i> SQL Query Editor
+                </h5>
+
+                <div class="mb-3">
+                    <label class="form-label text-secondary small">Pre-Built Analytical Queries</label>
+                    <select id="presetQueries" class="form-select bg-navy-dark text-white border-navy-light font-monospace small">
+                        <option value="SELECT account_type, COUNT(id) AS total_accounts, SUM(balance) AS total_holdings, AVG(balance) AS average_balance FROM accounts WHERE status = 'active' GROUP BY account_type;">📊 Bank Liquidity & Account Holdings</option>
+                        <option value="SELECT u.id, u.full_name, u.email, COUNT(a.id) AS accounts, SUM(a.balance) AS net_worth FROM users u JOIN accounts a ON u.id = a.user_id GROUP BY u.id ORDER BY net_worth DESC LIMIT 10;">🏆 Top Customers by Net Worth</option>
+                        <option value="SELECT reference_id, account_number, amount, risk_score, risk_level, decision, rules_triggered, evaluated_at FROM fraud_audit_logs ORDER BY evaluated_at DESC LIMIT 20;">🛡️ Java AML & Fraud Audit Records</option>
+                        <option value="SELECT t.reference_id, t.timestamp, t.amount, t.transaction_type, c.checksum_hash, c.verified FROM transactions t LEFT JOIN ledger_checksums c ON t.reference_id = c.reference_id ORDER BY t.timestamp DESC LIMIT 20;">🔐 C++ Ledger Checksums & Integrity</option>
+                        <option value="SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;">📁 List All Relational Tables</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-secondary small">SQL Statement</label>
+                    <textarea id="sqlInput" class="form-control bg-navy-dark text-warning border-navy-light font-monospace" rows="8" style="font-size: 0.9rem;" spellcheck="false">SELECT account_type, COUNT(id) AS total_accounts, SUM(balance) AS total_holdings, AVG(balance) AS average_balance FROM accounts WHERE status = 'active' GROUP BY account_type;</textarea>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <button id="btnRunSql" class="btn btn-warning px-4 py-2 rounded-pill fw-semibold shadow">
+                        <i class="bi bi-play-fill me-1"></i> Execute SQL
+                    </button>
+                    <span id="queryStats" class="text-secondary small font-monospace">Ready</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Query Results -->
+        <div class="col-lg-7">
+            <div class="card bg-navy-card border border-navy-light rounded-4 p-4 shadow-sm h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="text-white fw-semibold mb-0">
+                        <i class="bi bi-table me-2 text-emerald"></i> Query Execution Output
+                    </h5>
+                    <span id="resultBadge" class="badge bg-secondary-subtle text-light font-monospace small">0 rows</span>
+                </div>
+
+                <div id="errorAlert" class="alert alert-danger d-none py-2 px-3 small font-monospace rounded-3 mb-3"></div>
+
+                <div class="table-responsive" style="max-height: 480px;">
+                    <table class="table table-dark table-hover table-sm align-middle mb-0 font-monospace" style="font-size: 0.85rem;">
+                        <thead id="resultsThead" class="table-active text-secondary small text-uppercase">
+                            <tr><th>Status</th></tr>
+                        </thead>
+                        <tbody id="resultsTbody">
+                            <tr><td class="text-secondary py-3 text-center">Execute a query on the left to see database output.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const presetSelect = document.getElementById('presetQueries');
+const sqlInput = document.getElementById('sqlInput');
+const btnRun = document.getElementById('btnRunSql');
+const errorAlert = document.getElementById('errorAlert');
+const resultsThead = document.getElementById('resultsThead');
+const resultsTbody = document.getElementById('resultsTbody');
+const queryStats = document.getElementById('queryStats');
+const resultBadge = document.getElementById('resultBadge');
+
+presetSelect.addEventListener('change', function() {
+    sqlInput.value = this.value;
+});
+
+btnRun.addEventListener('click', async function() {
+    const sql = sqlInput.value.trim();
+    if (!sql) return;
+
+    btnRun.disabled = true;
+    btnRun.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Running...';
+    errorAlert.classList.add('d-none');
+    queryStats.textContent = 'Executing...';
+
+    try {
+        const resp = await fetch('{{ url_for("admin.api_run_sql") }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ query: sql })
+        });
+        const data = await resp.json();
+
+        if (data.success) {
+            queryStats.textContent = `Completed in ${data.execution_time_ms} ms (${data.row_count} rows)`;
+            resultBadge.textContent = `${data.row_count} rows`;
+            resultBadge.className = 'badge bg-success-subtle text-success font-monospace small';
+
+            // Build Header
+            let theadHtml = '<tr>';
+            data.columns.forEach(col => {
+                theadHtml += `<th class="text-secondary">${col}</th>`;
+            });
+            theadHtml += '</tr>';
+            resultsThead.innerHTML = theadHtml;
+
+            // Build Rows
+            if (data.rows.length === 0) {
+                resultsTbody.innerHTML = `<tr><td colspan="${data.columns.length}" class="text-center text-secondary py-3">No rows returned.</td></tr>`;
+            } else {
+                let tbodyHtml = '';
+                data.rows.forEach(row => {
+                    tbodyHtml += '<tr>';
+                    row.forEach(cell => {
+                        const val = cell !== null ? String(cell) : '<span class="text-secondary">NULL</span>';
+                        tbodyHtml += `<td class="text-light">${val}</td>`;
+                    });
+                    tbodyHtml += '</tr>';
+                });
+                resultsTbody.innerHTML = tbodyHtml;
+            }
+        } else {
+            errorAlert.textContent = 'SQL Error: ' + data.error;
+            errorAlert.classList.remove('d-none');
+            queryStats.textContent = `Failed in ${data.execution_time_ms} ms`;
+            resultBadge.textContent = 'Error';
+            resultBadge.className = 'badge bg-danger-subtle text-danger font-monospace small';
+        }
+    } catch(err) {
+        errorAlert.textContent = 'Request failed: ' + err.message;
+        errorAlert.classList.remove('d-none');
+    } finally {
+        btnRun.disabled = false;
+        btnRun.innerHTML = '<i class="bi bi-play-fill me-1"></i> Execute SQL';
+    }
+});
+
+// Auto-run preset query on load
+window.addEventListener('DOMContentLoaded', () => {
+    btnRun.click();
+});
+</script>
+{% endblock %}
+

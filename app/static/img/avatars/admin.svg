@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="admBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8b5cf6" />
+      <stop offset="100%" stop-color="#5b21b6" />
+    </linearGradient>
+    <linearGradient id="admSkin" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbcfe8" />
+      <stop offset="100%" stop-color="#f472b6" />
+    </linearGradient>
+    <linearGradient id="admSuit" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <linearGradient id="admShield" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7" />
+      <stop offset="100%" stop-color="#7e22ce" />
+    </linearGradient>
+    <filter id="admShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Outer Ring & Background -->
+  <circle cx="60" cy="60" r="58" fill="url(#admBg)" stroke="#c084fc" stroke-width="4" filter="url(#admShadow)" />
+  <circle cx="60" cy="60" r="54" fill="#2e1065" opacity="0.4" />
+
+  <!-- Security Tech Headset / Executive Cyber Accents -->
+  <path d="M 36 50 C 36 30, 46 22, 60 22 C 74 22, 84 30, 84 50" fill="none" stroke="#e9d5ff" stroke-width="3" stroke-linecap="round" />
+  <rect x="33" y="44" width="7" height="14" rx="3.5" fill="#c084fc" />
+  <rect x="80" y="44" width="7" height="14" rx="3.5" fill="#c084fc" />
+
+  <!-- Shoulders & Dark Executive Suit -->
+  <path d="M 24 112 C 26 84, 42 76, 60 76 C 78 76, 94 84, 96 112 Z" fill="url(#admSuit)" />
+  <!-- Purple Silk Tie -->
+  <polygon points="60,105 56,78 64,78" fill="#a855f7" />
+  <polygon points="60,94 52,76 68,76" fill="#ffffff" opacity="0.8" />
+
+  <!-- Neck -->
+  <rect x="52" y="64" width="16" height="18" rx="4" fill="#fed7aa" />
+
+  <!-- Head -->
+  <ellipse cx="60" cy="50" rx="19" ry="22" fill="#fed7aa" />
+
+  <!-- Sleek Hair -->
+  <path d="M 40 44 C 38 28, 50 20, 60 20 C 72 20, 82 28, 80 44 C 74 36, 66 32, 60 32 C 50 32, 44 36, 40 44 Z" fill="#1e1b4b" />
+
+  <!-- Modern Eyes & Confident Expression -->
+  <ellipse cx="53" cy="48" rx="2" ry="2.5" fill="#0f172a" />
+  <ellipse cx="67" cy="48" rx="2" ry="2.5" fill="#0f172a" />
+  <path d="M 54 60 Q 60 64 66 60" fill="none" stroke="#7c2d12" stroke-width="2" stroke-linecap="round" />
+
+  <!-- Admin Master Shield Badge -->
+  <circle cx="95" cy="95" r="16" fill="url(#admShield)" stroke="#ffffff" stroke-width="2" />
+  <!-- Shield Icon -->
+  <path d="M 95 86 L 102 89 C 102 96, 95 101, 95 101 C 95 101, 88 96, 88 89 Z" fill="#ffffff" />
+  <path d="M 95 91 L 95 97" stroke="#7e22ce" stroke-width="1.8" stroke-linecap="round" />
+</svg>
+

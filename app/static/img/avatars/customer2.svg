@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="cust2Bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4" />
+      <stop offset="100%" stop-color="#0284c7" />
+    </linearGradient>
+    <linearGradient id="cust2Skin" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fed7aa" />
+      <stop offset="100%" stop-color="#fba759" />
+    </linearGradient>
+    <linearGradient id="cust2Hair" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#78350f" />
+      <stop offset="100%" stop-color="#451a03" />
+    </linearGradient>
+    <linearGradient id="cust2Shirt" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1" />
+      <stop offset="100%" stop-color="#4338ca" />
+    </linearGradient>
+    <filter id="c2Shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <circle cx="60" cy="60" r="58" fill="url(#cust2Bg)" stroke="#38bdf8" stroke-width="4" filter="url(#c2Shadow)" />
+  <circle cx="60" cy="60" r="54" fill="#082f49" opacity="0.4" />
+
+  <!-- Shoulders -->
+  <path d="M 24 112 C 26 84, 42 78, 60 78 C 78 78, 94 84, 96 112 Z" fill="url(#cust2Shirt)" />
+  
+  <!-- Neck -->
+  <rect x="52" y="66" width="16" height="18" rx="4" fill="url(#cust2Skin)" />
+
+  <!-- Head -->
+  <ellipse cx="60" cy="52" rx="19" ry="23" fill="url(#cust2Skin)" />
+
+  <!-- Hair -->
+  <path d="M 40 45 C 38 28, 52 22, 60 22 C 70 22, 82 28, 80 45 C 75 36, 66 32, 60 32 C 52 32, 45 36, 40 45 Z" fill="url(#cust2Hair)" />
+
+  <!-- Eyes -->
+  <ellipse cx="53" cy="50" rx="2" ry="3" fill="#1e293b" />
+  <ellipse cx="67" cy="50" rx="2" ry="3" fill="#1e293b" />
+
+  <!-- Smile -->
+  <path d="M 54 62 Q 60 67 66 62" fill="none" stroke="#78350f" stroke-width="2" stroke-linecap="round" />
+
+  <!-- Customer Badge Indicator -->
+  <circle cx="95" cy="95" r="14" fill="#0284c7" stroke="#ffffff" stroke-width="2" />
+  <path d="M 91 95 L 94 98 L 100 92" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+</svg>
+

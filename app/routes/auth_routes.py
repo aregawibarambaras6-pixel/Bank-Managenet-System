@@ -1,5 +1,8 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+import os
+import uuid
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_user, logout_user, login_required, current_user
+from werkzeug.utils import secure_filename
 from app.extensions import db
 from app.models.user import User
 from app.models.account import Account
@@ -7,6 +10,11 @@ from app.models.transaction import Transaction
 from app.forms.auth_forms import LoginForm, RegisterForm
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -103,3 +111,40 @@ def logout():
     logout_user()
     flash('You have been safely logged out of Apex Bank.', 'info')
     return redirect(url_for('main.index'))
+
+@auth_bp.route('/profile/update-photo', methods=['POST'])
+@login_required
+def update_photo():
+    """Allows Customer, Manager, or Admin to choose or upload their profile photo."""
+    # 1. Custom File Upload
+    if 'avatar_file' in request.files:
+        file = request.files['avatar_file']
+        if file and file.filename != '' and allowed_file(file.filename):
+            ext = file.filename.rsplit('.', 1)[1].lower()
+            safe_name = f"user_{current_user.id}_{uuid.uuid4().hex[:8]}.{ext}"
+            upload_dir = os.path.join(current_app.root_path, 'static', 'uploads', 'avatars')
+            os.makedirs(upload_dir, exist_ok=True)
+            file.save(os.path.join(upload_dir, safe_name))
+            
+            current_user.profile_picture = f"/static/uploads/avatars/{safe_name}"
+            db.session.commit()
+            flash('Your custom profile picture has been uploaded successfully!', 'success')
+            return redirect(request.referrer or url_for('banking.dashboard'))
+
+    # 2. Preset Avatar Choice
+    preset = request.form.get('preset_avatar', '').strip()
+    if preset and preset.startswith('/static/img/avatars/'):
+        current_user.profile_picture = preset
+        db.session.commit()
+        flash('Profile avatar updated from gallery choice!', 'success')
+        return redirect(request.referrer or url_for('banking.dashboard'))
+
+    # 3. Reset to Default
+    if request.form.get('reset_default') == 'true':
+        current_user.profile_picture = None
+        db.session.commit()
+        flash('Profile photo reset to default role avatar.', 'info')
+        return redirect(request.referrer or url_for('banking.dashboard'))
+
+    flash('Please choose an avatar from the gallery or select a valid image file (PNG, JPG, SVG, WEBP).', 'warning')
+    return redirect(request.referrer or url_for('banking.dashboard'))

@@ -6,17 +6,36 @@
 <div class="py-4 bg-light min-vh-100">
     <div class="container">
         <!-- Top Stats Banner -->
-        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-            <div>
-                <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-semibold mb-1">
-                    <i class="bi bi-shield-check me-1"></i> Management Clearance Level
-                </span>
-                <h3 class="fw-bold text-navy-dark mb-0">Apex Bank Operations & Administration</h3>
-            </div>
-            <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill small">
-                    <i class="bi bi-circle-fill fs-6 text-success me-1"></i> Core Banking Engine Online
-                </span>
+        <div class="card border-0 shadow-sm rounded-4 bg-navy text-white mb-4 p-4 overflow-hidden position-relative">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 position-relative z-1">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="position-relative flex-shrink-0" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#changePhotoModal" title="Click to change profile photo">
+                        <img src="{{ current_user.avatar }}" alt="Manager Photo" class="rounded-circle shadow-lg" width="76" height="76" style="object-fit: cover; border: 3px solid #f59e0b;">
+                        <span class="position-absolute bottom-0 end-0 bg-dark text-white rounded-circle border border-2 border-white d-flex align-items-center justify-content-center shadow-sm" style="width: 26px; height: 26px;" title="Change Photo">
+                            <i class="bi bi-camera-fill" style="font-size: 0.75rem;"></i>
+                        </span>
+                    </div>
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                            <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-semibold">
+                                <i class="bi bi-briefcase-fill me-1"></i> Branch Manager
+                            </span>
+                            <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-25 px-3 py-1 rounded-pill small font-monospace">
+                                Staff ID: #MGR-{{ "%04d" % current_user.id }}
+                            </span>
+                            <button class="btn btn-outline-light btn-sm rounded-pill px-2 py-0 border-opacity-25" style="font-size: 0.75rem;" data-bs-toggle="modal" data-bs-target="#changePhotoModal">
+                                <i class="bi bi-image me-1"></i>Change Photo
+                            </button>
+                        </div>
+                        <h3 class="fw-bold text-white mb-1">Welcome, {{ current_user.full_name or current_user.username }}</h3>
+                        <p class="text-slate-300 mb-0 small">Branch Operations, Customer Portfolio Supervision & Risk Compliance</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill small">
+                        <i class="bi bi-circle-fill text-success me-1"></i> Core Banking Engine Online
+                    </span>
+                </div>
             </div>
         </div>
 

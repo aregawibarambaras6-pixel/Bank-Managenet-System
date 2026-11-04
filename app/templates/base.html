@@ -72,6 +72,11 @@
                                     <i class="bi bi-journal-text me-1"></i> Ledger
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-info fw-semibold" href="{{ url_for('banking.calculator') }}">
+                                    <i class="bi bi-cpu me-1 text-danger"></i> C++ Financial Tools
+                                </a>
+                            </li>
                         {% elif current_user.role == 'manager' %}
                             <li class="nav-item">
                                 <a class="nav-link text-warning fw-semibold" href="{{ url_for('manager.dashboard') }}">
@@ -82,6 +87,11 @@
                             <li class="nav-item">
                                 <a class="nav-link text-purple fw-semibold" href="{{ url_for('admin.dashboard') }}" style="color: #a78bfa !important;">
                                     <i class="bi bi-shield-lock-fill me-1"></i> System Admin Portal
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-warning fw-semibold" href="{{ url_for('admin.sql_console') }}">
+                                    <i class="bi bi-database me-1"></i> Direct SQL Console
                                 </a>
                             </li>
                         {% endif %}
@@ -102,28 +112,46 @@
                 <div class="d-flex align-items-center gap-2">
                     {% if current_user.is_authenticated %}
                         <div class="dropdown">
-                            <button class="btn btn-navy-card text-white border border-secondary border-opacity-25 rounded-pill px-3 py-1 dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <button class="btn btn-navy-card text-white border border-secondary border-opacity-25 rounded-pill px-2 py-1 dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img src="{{ current_user.avatar }}" alt="{{ current_user.role }}" class="rounded-circle shadow-sm" width="30" height="30" style="object-fit: cover; border: 2px solid {{ '#7c3aed' if current_user.role == 'admin' else ('#f59e0b' if current_user.role == 'manager' else '#10b981') }};">
                                 {% if current_user.role == 'admin' %}
-                                    <span class="badge text-white rounded-pill" style="background-color: #7c3aed;">ADMIN</span>
+                                    <span class="badge text-white rounded-pill d-none d-sm-inline" style="background-color: #7c3aed;">ADMIN</span>
                                 {% elif current_user.role == 'manager' %}
-                                    <span class="badge bg-warning text-dark rounded-pill">MANAGER</span>
+                                    <span class="badge bg-warning text-dark rounded-pill d-none d-sm-inline">MANAGER</span>
                                 {% else %}
-                                    <span class="badge bg-success text-white rounded-pill">CUSTOMER</span>
+                                    <span class="badge bg-success text-white rounded-pill d-none d-sm-inline">CUSTOMER</span>
                                 {% endif %}
-                                <span class="small fw-semibold">{{ current_user.full_name or current_user.username }}</span>
+                                <span class="small fw-semibold pe-1">{{ current_user.full_name or current_user.username }}</span>
                             </button>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 mt-2">
-                                <li><h6 class="dropdown-header text-muted">{{ current_user.email }}</h6></li>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 mt-2 p-2" style="min-width: 250px;">
+                                <li class="px-3 py-2 border-bottom mb-2 text-center">
+                                    <div class="position-relative d-inline-block">
+                                        <img src="{{ current_user.avatar }}" alt="{{ current_user.role }}" class="rounded-circle shadow mb-2" width="60" height="60" style="border: 3px solid {{ '#7c3aed' if current_user.role == 'admin' else ('#f59e0b' if current_user.role == 'manager' else '#10b981') }};">
+                                    </div>
+                                    <div class="fw-bold text-dark">{{ current_user.full_name or current_user.username }}</div>
+                                    <div class="text-muted small">{{ current_user.email }}</div>
+                                    <span class="badge {{ 'bg-purple text-white' if current_user.role == 'admin' else ('bg-warning text-dark' if current_user.role == 'manager' else 'bg-success text-white') }} rounded-pill px-3 py-1 mt-1 small" {{ 'style="background-color: #7c3aed !important;"' if current_user.role == 'admin' else '' }}>
+                                        {{ current_user.role.upper() }}
+                                    </span>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item rounded-3 text-primary fw-semibold" data-bs-toggle="modal" data-bs-target="#changePhotoModal">
+                                        <i class="bi bi-camera me-2"></i> Choose Profile Photo
+                                    </button>
+                                </li>
+                                <li><hr class="dropdown-divider my-2"></li>
                                 {% if current_user.role == 'customer' %}
-                                    <li><a class="dropdown-item" href="{{ url_for('banking.dashboard') }}"><i class="bi bi-person-circle me-2 text-primary"></i> Customer Dashboard</a></li>
-                                    <li><a class="dropdown-item" href="{{ url_for('banking.transactions') }}"><i class="bi bi-clock-history me-2 text-info"></i> Transaction History</a></li>
+                                    <li><a class="dropdown-item rounded-3" href="{{ url_for('banking.dashboard') }}"><i class="bi bi-wallet2 me-2 text-primary"></i> Customer Dashboard</a></li>
+                                    <li><a class="dropdown-item rounded-3" href="{{ url_for('banking.transactions') }}"><i class="bi bi-clock-history me-2 text-info"></i> Transaction History</a></li>
+                                    <li><a class="dropdown-item rounded-3" href="{{ url_for('banking.calculator') }}"><i class="bi bi-cpu me-2 text-danger"></i> C++ Financial Tools</a></li>
                                 {% elif current_user.role == 'manager' %}
-                                    <li><a class="dropdown-item text-warning" href="{{ url_for('manager.dashboard') }}"><i class="bi bi-briefcase-fill me-2"></i> Manager Control Center</a></li>
+                                    <li><a class="dropdown-item rounded-3 text-warning fw-semibold" href="{{ url_for('manager.dashboard') }}"><i class="bi bi-briefcase-fill me-2"></i> Manager Control Center</a></li>
                                 {% elif current_user.role == 'admin' %}
-                                    <li><a class="dropdown-item" href="{{ url_for('admin.dashboard') }}" style="color: #7c3aed;"><i class="bi bi-shield-shaded me-2"></i> Admin Control Center</a></li>
+                                    <li><a class="dropdown-item rounded-3" href="{{ url_for('admin.dashboard') }}" style="color: #7c3aed;"><i class="bi bi-shield-shaded me-2"></i> Admin Control Center</a></li>
+                                    <li><a class="dropdown-item rounded-3 text-warning fw-semibold" href="{{ url_for('admin.sql_console') }}"><i class="bi bi-database me-2"></i> Direct SQL Console</a></li>
                                 {% endif %}
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-2"></i> Sign Out</a></li>
+                                <li><hr class="dropdown-divider my-2"></li>
+                                <li><a class="dropdown-item rounded-3 text-danger" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-2"></i> Sign Out</a></li>
                             </ul>
                         </div>
                     {% else %}
@@ -220,12 +248,145 @@
 
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-center small text-secondary">
                 <p class="mb-0">© 2026 Bank Management System. All rights reserved. University Academic Project.</p>
-                <div class="d-flex gap-3 mt-2 mt-md-0">
-                    <span>Flask + SQLite + SQLAlchemy</span>
+                <div class="d-flex flex-wrap gap-2 mt-2 mt-md-0 font-monospace" style="font-size: 0.78rem;">
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">C++ 14</span>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Python 3.14</span>
+                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle">Java 25</span>
+                    <span class="badge bg-info-subtle text-info border border-info-subtle">JavaScript</span>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle">HTML5 & CSS3</span>
+                    <span class="badge bg-light text-dark">SQL / SQLite</span>
                 </div>
             </div>
         </div>
     </footer>
+
+    {% if current_user.is_authenticated %}
+    <!-- Universal Profile Photo Choice Modal -->
+    <div class="modal fade" id="changePhotoModal" tabindex="-1" aria-labelledby="changePhotoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden bg-navy-card text-white">
+                <div class="modal-header border-navy-light p-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <img src="{{ current_user.avatar }}" alt="Current Photo" id="modalCurrentPhotoPreview" class="rounded-circle shadow" width="56" height="56" style="object-fit: cover; border: 3px solid #10b981;">
+                        <div>
+                            <h5 class="modal-title fw-bold text-white mb-0" id="changePhotoModalLabel">Choose Your Profile Photo</h5>
+                            <small class="text-secondary">Pick any character avatar from the gallery or upload your custom photo</small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                
+                <div class="modal-body p-4">
+                    <!-- Choice 1: Avatar Gallery -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="text-emerald fw-semibold mb-0">
+                            <i class="bi bi-grid-fill me-2"></i>Choice 1: Select from Avatar Gallery
+                        </h6>
+                        <span class="badge bg-secondary-subtle text-light small">8 Avatars Available</span>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('auth.update_photo') }}" id="galleryAvatarForm">
+                        <input type="hidden" name="preset_avatar" id="selectedPresetInput" value="">
+                        
+                        <div class="row g-3 mb-3">
+                            {% set gallery = [
+                                ('/static/img/avatars/customer.svg', 'Modern Customer', '#10b981'),
+                                ('/static/img/avatars/customer2.svg', 'Casual Customer', '#0284c7'),
+                                ('/static/img/avatars/manager.svg', 'Branch Manager', '#f59e0b'),
+                                ('/static/img/avatars/admin.svg', 'Executive Admin', '#7c3aed'),
+                                ('/static/img/avatars/avatar_executive.svg', 'Executive Leader', '#334155'),
+                                ('/static/img/avatars/avatar_finance.svg', 'Finance Expert', '#059669'),
+                                ('/static/img/avatars/avatar_tech.svg', 'Cyber & Tech', '#2563eb'),
+                                ('/static/img/avatars/avatar_creative.svg', 'Creative Modern', '#db2777')
+                            ] %}
+                            {% for path, label, color in gallery %}
+                            <div class="col-6 col-md-3">
+                                <div class="avatar-option-card p-3 rounded-4 border border-navy-light text-center h-100 {{ 'active-avatar-choice' if current_user.avatar == path else '' }}" 
+                                     onclick="selectPresetAvatar('{{ path }}', this)" 
+                                     style="cursor: pointer; transition: all 0.25s ease; background: rgba(255, 255, 255, 0.03);">
+                                    <img src="{{ path }}" alt="{{ label }}" class="rounded-circle mb-2 shadow-sm" width="64" height="64" style="object-fit: cover; border: 2px solid {{ color }};">
+                                    <div class="small fw-semibold text-white mb-0" style="font-size: 0.8rem;">{{ label }}</div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-flex justify-content-end mb-4">
+                            <button type="submit" id="btnSavePreset" class="btn btn-emerald px-4 py-2 rounded-pill fw-semibold shadow" disabled>
+                                <i class="bi bi-check2-circle me-1"></i> Apply Chosen Avatar
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="position-relative text-center my-4">
+                        <hr class="border-secondary border-opacity-25">
+                        <span class="position-absolute top-50 start-50 translate-middle bg-navy-card px-3 text-secondary small font-monospace">OR</span>
+                    </div>
+
+                    <!-- Choice 2: Custom File Upload -->
+                    <h6 class="text-primary fw-semibold mb-3">
+                        <i class="bi bi-cloud-arrow-up-fill me-2"></i>Choice 2: Upload Your Custom Photo File
+                    </h6>
+                    <form method="POST" action="{{ url_for('auth.update_photo') }}" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small">Choose an image from your device (JPG, PNG, SVG, WEBP)</label>
+                            <input type="file" name="avatar_file" id="customAvatarFileInput" class="form-control bg-navy-dark text-white border-navy-light py-2" accept="image/png, image/jpeg, image/jpg, image/svg+xml, image/webp" required onchange="previewUploadedImage(event)">
+                        </div>
+                        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
+                            <span class="text-secondary small">Your uploaded photo will be instantly applied to your account.</span>
+                            <button type="submit" class="btn btn-primary px-4 py-2 rounded-pill fw-semibold shadow flex-shrink-0">
+                                <i class="bi bi-upload me-1"></i> Upload Photo
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer border-navy-light p-3 bg-navy-dark d-flex justify-content-between">
+                    <form method="POST" action="{{ url_for('auth.update_photo') }}">
+                        <input type="hidden" name="reset_default" value="true">
+                        <button type="submit" class="btn btn-outline-secondary btn-sm rounded-pill text-light">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset to Default
+                        </button>
+                    </form>
+                    <button type="button" class="btn btn-secondary btn-sm rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function selectPresetAvatar(path, element) {
+        document.getElementById('selectedPresetInput').value = path;
+        document.querySelectorAll('.avatar-option-card').forEach(card => {
+            card.classList.remove('active-avatar-choice');
+            card.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+            card.style.background = 'rgba(255, 255, 255, 0.03)';
+        });
+        element.classList.add('active-avatar-choice');
+        element.style.borderColor = '#10b981';
+        element.style.background = 'rgba(16, 185, 129, 0.15)';
+        
+        const saveBtn = document.getElementById('btnSavePreset');
+        saveBtn.disabled = false;
+        saveBtn.classList.add('pulse-once');
+        
+        const previewImg = document.getElementById('modalCurrentPhotoPreview');
+        if (previewImg) previewImg.src = path;
+    }
+
+    function previewUploadedImage(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewImg = document.getElementById('modalCurrentPhotoPreview');
+                if (previewImg) previewImg.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+    </script>
+    {% endif %}
 
     <!-- Bootstrap 5 JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>

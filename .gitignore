@@ -34,6 +34,16 @@ instance/
 node_modules/
 npm-debug.log
 
+# Binaries & Compiled
+*.class
+*.exe
+*.o
+*.obj
+
+# User uploaded media
+app/static/uploads/avatars/*
+!app/static/uploads/avatars/.gitkeep
+
 # OS
 .DS_Store
 Thumbs.db

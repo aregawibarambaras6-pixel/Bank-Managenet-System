@@ -366,3 +366,64 @@ h1, h2, h3, h4, h5, h6, .brand-title {
     transition: background-color 5000s ease-in-out 0s;
 }
 
+/* Polyglot Tech Badges & Calculator UI */
+.border-navy-light {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.text-purple {
+    color: #a78bfa !important;
+}
+
+.text-gold {
+    color: #f59e0b !important;
+}
+
+.max-w-350 {
+    max-width: 350px;
+}
+
+.service-tile {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.service-tile:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12) !important;
+}
+
+.service-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Avatar Option Cards in Photo Selection Modal */
+.avatar-option-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    user-select: none;
+}
+
+.avatar-option-card:hover {
+    transform: translateY(-3px) scale(1.03);
+    border-color: rgba(16, 185, 129, 0.6) !important;
+    background: rgba(16, 185, 129, 0.08) !important;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+}
+
+.active-avatar-choice {
+    border-color: #10b981 !important;
+    background: rgba(16, 185, 129, 0.15) !important;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.35);
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+
+

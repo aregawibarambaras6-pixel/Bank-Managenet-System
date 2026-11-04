@@ -7,6 +7,22 @@
 {% block service_subtitle %}View your account details and balances{% endblock %}
 
 {% block service_body %}
+<div class="card border-0 bg-light rounded-4 p-3 mb-4">
+    <div class="d-flex align-items-center gap-3">
+        <img src="{{ current_user.avatar }}" alt="Profile Photo" class="rounded-circle shadow-sm" width="64" height="64" style="object-fit: cover; border: 3px solid #10b981;">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h5 class="fw-bold text-navy-dark mb-0">{{ current_user.full_name or current_user.username }}</h5>
+                <span class="badge bg-success-subtle text-success rounded-pill px-2 py-1 small">Active Customer</span>
+            </div>
+            <div class="text-muted small">
+                <span><i class="bi bi-envelope me-1"></i>{{ current_user.email }}</span> • 
+                <span class="font-monospace">UID: #{{ "%04d" % current_user.id }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="mb-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h6 class="fw-bold text-navy-dark mb-0">Account Summary</h6>

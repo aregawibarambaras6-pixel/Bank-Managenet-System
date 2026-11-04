@@ -13,6 +13,9 @@ from app.forms.services_forms import (
     SubscriptionsForm, PayForForm, DonationForm, TaxPaymentForm, MyServiceForm
 )
 from app.utils.decorators import customer_required
+from app.utils.java_service import analyze_transaction_risk
+from app.utils.cpp_engine import generate_ledger_hash
+from app.utils.sql_executor import log_fraud_audit, log_ledger_checksum
 
 services_bp = Blueprint('services', __name__, url_prefix='/services')
 
@@ -71,12 +74,27 @@ def cbc_transfer():
             flash(f'Insufficient funds. Available: ${sender.balance:,.2f}', 'danger')
             return redirect(url_for('services.cbc_transfer'))
 
+        # Java 25 AML Fraud Risk Check
+        daily_count = len(sender.transactions) if sender.transactions else 1
+        risk_res = analyze_transaction_risk(
+            reference_id="PENDING-CBC-TRANSFER",
+            transaction_type="cbc_transfer_out",
+            amount=amount,
+            account_type=sender.account_type,
+            status=sender.status,
+            daily_txn_count=daily_count
+        )
+
+        if risk_res.get('decision') == 'REJECTED':
+            flash(f"CBC Transfer REJECTED by Java AML Risk Engine: {risk_res.get('recommendation')} (Score: {risk_res.get('risk_score')}/100)", 'danger')
+            return redirect(url_for('services.cbc_transfer'))
+
         try:
             sender.balance -= amount
             recipient.balance += amount
             tx_ref = Transaction.generate_reference()
 
-            db.session.add(Transaction(
+            sender_tx = Transaction(
                 reference_id=tx_ref,
                 account_id=sender.id,
                 transaction_type='cbc_transfer_out',
@@ -84,8 +102,8 @@ def cbc_transfer():
                 balance_after=sender.balance,
                 description=f'CBC Transfer to {recipient.account_number}: {form.description.data}',
                 related_account=recipient.account_number
-            ))
-            db.session.add(Transaction(
+            )
+            recipient_tx = Transaction(
                 reference_id=f"{tx_ref}-REC",
                 account_id=recipient.id,
                 transaction_type='cbc_transfer_in',
@@ -93,9 +111,22 @@ def cbc_transfer():
                 balance_after=recipient.balance,
                 description=f'CBC Transfer from {sender.account_number}: {form.description.data}',
                 related_account=sender.account_number
-            ))
+            )
+            db.session.add(sender_tx)
+            db.session.add(recipient_tx)
             db.session.commit()
-            flash(f'Successfully transferred {amount:,.2f} Birr to CBC account #{recipient_number}. Ref: {tx_ref}', 'success')
+
+            # SQL Audit & C++ Hashing
+            log_fraud_audit(
+                tx_ref, sender.account_number, amount,
+                risk_res.get('risk_score', 0), risk_res.get('risk_level', 'LOW'),
+                risk_res.get('decision', 'APPROVED'), risk_res.get('rules_triggered', []),
+                risk_res.get('recommendation', '')
+            )
+            hash_res = generate_ledger_hash(tx_ref, sender.account_number, recipient.account_number, amount, str(sender_tx.timestamp))
+            log_ledger_checksum(tx_ref, hash_res.get('ledger_hash', ''))
+
+            flash(f'Successfully transferred {amount:,.2f} Birr to CBC account #{recipient_number}. Ref: {tx_ref} (Checksum: {hash_res.get("ledger_hash", "")[:10]}...)', 'success')
             return redirect(url_for('banking.dashboard'))
         except Exception as e:
             db.session.rollback()

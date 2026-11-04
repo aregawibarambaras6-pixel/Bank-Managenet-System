@@ -1,15 +1,25 @@
 {
   "name": "bank-management-system",
   "version": "1.0.0",
-  "description": "Smart, Secure & Scalable Bank Management System built with Flask",
+  "description": "Polyglot Bank Management System built with Python, C++, Java, JavaScript, HTML5, CSS3, and SQL",
   "scripts": {
     "dev": "python run.py",
-    "start": "python run.py"
+    "start": "python run.py",
+    "build:cpp": "g++ -O2 -std=c++14 engine/bank_engine.cpp -o engine/bank_engine.exe",
+    "build:java": "javac services/FraudDetectionService.java",
+    "build": "npm run build:cpp && npm run build:java",
+    "init:db": "python -c \"from app.utils.sql_executor import initialize_database_schema; print(initialize_database_schema())\""
   },
   "keywords": [
     "flask",
-    "bank-management-system",
-    "python"
+    "python",
+    "cpp",
+    "java",
+    "javascript",
+    "sql",
+    "html5",
+    "css3",
+    "bank-management-system"
   ],
   "author": "aregawibarambaras6-pixel",
   "license": "MIT"

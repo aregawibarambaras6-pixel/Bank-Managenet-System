@@ -6,17 +6,39 @@
 <div class="py-4 bg-light min-vh-100">
     <div class="container">
         <!-- Admin Top Banner -->
-        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-            <div>
-                <span class="badge bg-purple text-white px-3 py-1 rounded-pill fw-semibold mb-1" style="background-color: #7c3aed !important;">
-                    <i class="bi bi-shield-shaded me-1"></i> Executive Admin Clearance
-                </span>
-                <h3 class="fw-bold text-navy-dark mb-0">System Control & User Access Administration</h3>
-            </div>
-            <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill small">
-                    <i class="bi bi-shield-fill-check fs-6 text-success me-1"></i> RBAC Security Active
-                </span>
+        <div class="card border-0 shadow-sm rounded-4 bg-navy text-white mb-4 p-4 overflow-hidden position-relative">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 position-relative z-1">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="position-relative flex-shrink-0" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#changePhotoModal" title="Click to change profile photo">
+                        <img src="{{ current_user.avatar }}" alt="Admin Photo" class="rounded-circle shadow-lg" width="76" height="76" style="object-fit: cover; border: 3px solid #7c3aed;">
+                        <span class="position-absolute bottom-0 end-0 bg-dark text-white rounded-circle border border-2 border-white d-flex align-items-center justify-content-center shadow-sm" style="width: 26px; height: 26px;" title="Change Photo">
+                            <i class="bi bi-camera-fill" style="font-size: 0.75rem;"></i>
+                        </span>
+                    </div>
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                            <span class="badge text-white px-3 py-1 rounded-pill fw-semibold" style="background-color: #7c3aed !important;">
+                                <i class="bi bi-shield-shaded me-1"></i> Executive Administrator
+                            </span>
+                            <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-25 px-3 py-1 rounded-pill small font-monospace">
+                                Root UID: #ADM-{{ "%04d" % current_user.id }}
+                            </span>
+                            <button class="btn btn-outline-light btn-sm rounded-pill px-2 py-0 border-opacity-25" style="font-size: 0.75rem;" data-bs-toggle="modal" data-bs-target="#changePhotoModal">
+                                <i class="bi bi-image me-1"></i>Change Photo
+                            </button>
+                        </div>
+                        <h3 class="fw-bold text-white mb-1">Welcome, {{ current_user.full_name or current_user.username }}</h3>
+                        <p class="text-slate-300 mb-0 small">Executive System Control, Staff Management & Security Audits</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="{{ url_for('admin.sql_console') }}" class="btn btn-warning rounded-pill px-3 py-2 fw-semibold">
+                        <i class="bi bi-database me-1"></i> Direct SQL Console
+                    </a>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill small">
+                        <i class="bi bi-shield-fill-check fs-6 text-success me-1"></i> RBAC Active
+                    </span>
+                </div>
             </div>
         </div>
 
@@ -118,7 +140,12 @@
                         {% for u in users %}
                         <tr>
                             <td class="ps-4 font-monospace text-muted">#{{ "%04d" % u.id }}</td>
-                            <td class="fw-bold text-navy-dark">{{ u.full_name or '—' }}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="{{ u.avatar }}" alt="{{ u.role }}" class="rounded-circle shadow-sm flex-shrink-0" width="34" height="34" style="object-fit: cover; border: 2px solid {{ '#7c3aed' if u.role == 'admin' else ('#f59e0b' if u.role == 'manager' else '#10b981') }};">
+                                    <span class="fw-bold text-navy-dark">{{ u.full_name or '—' }}</span>
+                                </div>
+                            </td>
                             <td><span class="badge bg-light text-dark border">{{ u.username }}</span></td>
                             <td class="text-muted small">{{ u.email }}</td>
                             <td>
