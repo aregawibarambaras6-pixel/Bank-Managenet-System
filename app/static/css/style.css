@@ -425,5 +425,52 @@ h1, h2, h3, h4, h5, h6, .brand-title {
     cursor: pointer;
 }
 
+/* Avatar Role Borders (Clean separation of styles from Jinja2 templates) */
+.avatar-role-admin {
+    border: 2px solid #7c3aed !important;
+}
+.avatar-role-manager {
+    border: 2px solid #f59e0b !important;
+}
+.avatar-role-customer {
+    border: 2px solid #10b981 !important;
+}
+
+.avatar-role-admin-lg {
+    border: 3px solid #7c3aed !important;
+}
+.avatar-role-manager-lg {
+    border: 3px solid #f59e0b !important;
+}
+.avatar-role-customer-lg {
+    border: 3px solid #10b981 !important;
+}
+
+/* Avatar Preset Gallery Borders */
+.preset-border-emerald {
+    border: 2px solid #10b981 !important;
+}
+.preset-border-sky {
+    border: 2px solid #0284c7 !important;
+}
+.preset-border-amber {
+    border: 2px solid #f59e0b !important;
+}
+.preset-border-purple {
+    border: 2px solid #7c3aed !important;
+}
+.preset-border-slate {
+    border: 2px solid #334155 !important;
+}
+.preset-border-teal {
+    border: 2px solid #059669 !important;
+}
+.preset-border-blue {
+    border: 2px solid #2563eb !important;
+}
+.preset-border-pink {
+    border: 2px solid #db2777 !important;
+}
+
 
 

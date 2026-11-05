@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}Loans & Credit Facilities - Apex Bank{% endblock %}
+
+{% block content %}
+<div class="py-4 bg-light min-vh-100">
+    <div class="container">
+        <!-- Header Banner -->
+        <div class="card border-0 shadow-sm rounded-4 bg-navy text-white mb-4 overflow-hidden position-relative">
+            <div class="hero-bg-glow"></div>
+            <div class="card-body p-4 p-lg-5 position-relative z-1">
+                <div class="row align-items-center g-4">
+                    <div class="col-lg-7">
+                        <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                            <span class="badge bg-emerald-subtle text-emerald-dark px-3 py-1 rounded-pill small">
+                                <i class="bi bi-shield-check me-1"></i> Apex Credit Services
+                            </span>
+                            <span class="badge bg-info-subtle text-info border border-info-subtle px-3 py-1 rounded-pill small">
+                                <i class="bi bi-cpu me-1"></i> C++ Amortization Powered
+                            </span>
+                        </div>
+                        <h2 class="h3 fw-bold mb-1">Loans & Personal Financing</h2>
+                        <p class="text-slate-300 mb-0 small">
+                            Apply for fixed-rate personal, mortgage, auto, or business loans with transparent C++ amortized terms and instant underwriting review.
+                        </p>
+                    </div>
+                    <div class="col-lg-5 text-lg-end">
+                        <a href="{{ url_for('banking.apply_loan') }}" class="btn btn-emerald rounded-pill px-4 py-2 text-white fw-semibold shadow-sm">
+                            <i class="bi bi-plus-circle me-1"></i> Apply for New Loan
+                        </a>
+                        <a href="{{ url_for('banking.dashboard') }}" class="btn btn-outline-light rounded-pill px-3 py-2 ms-2">
+                            <i class="bi bi-arrow-left me-1"></i> Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metric KPI Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-3 border-start border-4 border-success h-100">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted small text-uppercase fw-semibold">Active Loan Capital</span>
+                            <h3 class="fw-bold text-navy-dark mb-0 mt-1">${{ "{:,.2f}".format(total_borrowed) }}</h3>
+                            <small class="text-success"><i class="bi bi-check-circle-fill me-1"></i>Disbursed to accounts</small>
+                        </div>
+                        <div class="rounded-circle bg-success-subtle p-3 text-success">
+                            <i class="bi bi-cash-stack fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-3 border-start border-4 border-primary h-100">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted small text-uppercase fw-semibold">Monthly Payment (EMI)</span>
+                            <h3 class="fw-bold text-navy-dark mb-0 mt-1">${{ "{:,.2f}".format(total_monthly_emi) }}</h3>
+                            <small class="text-muted"><i class="bi bi-calendar-event me-1"></i>Combined monthly commitment</small>
+                        </div>
+                        <div class="rounded-circle bg-primary-subtle p-3 text-primary">
+                            <i class="bi bi-calendar-check fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-3 border-start border-4 border-warning h-100">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted small text-uppercase fw-semibold">Pending Review</span>
+                            <h3 class="fw-bold text-navy-dark mb-0 mt-1">{{ pending_count }}</h3>
+                            <small class="text-warning"><i class="bi bi-hourglass-split me-1"></i>Awaiting branch approval</small>
+                        </div>
+                        <div class="rounded-circle bg-warning-subtle p-3 text-warning">
+                            <i class="bi bi-clock-history fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loans List -->
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+            <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold text-navy-dark mb-0">
+                    <i class="bi bi-card-checklist text-emerald me-2"></i>My Loan Portfolio ({{ loans|length }})
+                </h5>
+                <a href="{{ url_for('banking.apply_loan') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                    <i class="bi bi-plus-lg me-1"></i> New Application
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if loans %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light small text-uppercase text-secondary">
+                            <tr>
+                                <th class="ps-4">Reference & Type</th>
+                                <th>Principal</th>
+                                <th>Term & Rate</th>
+                                <th>Monthly EMI</th>
+                                <th>Total Repayment</th>
+                                <th>Disbursal Account</th>
+                                <th>Status</th>
+                                <th class="pe-4 text-end">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for loan in loans %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-bold text-navy-dark">{{ loan.loan_type }}</div>
+                                    <span class="font-monospace small text-muted">{{ loan.loan_reference }}</span>
+                                </td>
+                                <td>
+                                    <span class="fw-bold text-dark fs-6">${{ "{:,.2f}".format(loan.amount) }}</span>
+                                </td>
+                                <td>
+                                    <div><span class="badge bg-secondary-subtle text-secondary">{{ loan.term_months }} Months</span></div>
+                                    <small class="text-muted">{{ loan.annual_rate }}% Fixed APR</small>
+                                </td>
+                                <td>
+                                    <span class="fw-bold text-emerald fs-6">${{ "{:,.2f}".format(loan.monthly_payment) }}</span>
+                                    <div class="small text-muted">/ month</div>
+                                </td>
+                                <td>
+                                    <div class="small fw-semibold text-dark">${{ "{:,.2f}".format(loan.total_payable) }}</div>
+                                    <div class="small text-muted">Interest: ${{ "{:,.2f}".format(loan.total_interest) }}</div>
+                                </td>
+                                <td>
+                                    {% if loan.account %}
+                                    <div class="small font-monospace text-dark">#{{ loan.account.account_number }}</div>
+                                    <div class="small text-muted">{{ loan.account.account_type.title() }}</div>
+                                    {% else %}
+                                    <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if loan.status == 'APPROVED' %}
+                                        <span class="badge bg-success rounded-pill px-3 py-2">
+                                            <i class="bi bi-check-circle me-1"></i> APPROVED
+                                        </span>
+                                    {% elif loan.status == 'PENDING' %}
+                                        <span class="badge bg-warning text-dark rounded-pill px-3 py-2">
+                                            <i class="bi bi-hourglass-split me-1"></i> PENDING REVIEW
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-danger rounded-pill px-3 py-2">
+                                            <i class="bi bi-x-circle me-1"></i> REJECTED
+                                        </span>
+                                    {% endif %}
+                                    {% if loan.manager_notes %}
+                                    <div class="small text-muted mt-1 fst-italic" style="max-width: 200px;">
+                                        "{{ loan.manager_notes }}"
+                                    </div>
+                                    {% endif %}
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <div class="small text-dark">{{ loan.created_at.strftime('%b %d, %Y') }}</div>
+                                    <div class="small text-muted">{{ loan.created_at.strftime('%H:%M UTC') }}</div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <div class="display-1 text-muted mb-3 opacity-25">
+                        <i class="bi bi-wallet2"></i>
+                    </div>
+                    <h5 class="fw-bold text-secondary">No Loan Applications Found</h5>
+                    <p class="text-muted small max-w-400 mx-auto mb-4">
+                        You have not applied for any loans or credit facilities yet. Apex Bank offers competitive rates with instant C++ calculated schedules.
+                    </p>
+                    <a href="{{ url_for('banking.apply_loan') }}" class="btn btn-emerald rounded-pill px-4 text-white">
+                        <i class="bi bi-plus-circle me-1"></i> Apply for Your First Loan
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

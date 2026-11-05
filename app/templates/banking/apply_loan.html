@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}Apply for a Loan - Apex Bank{% endblock %}
+
+{% block content %}
+<div class="py-4 bg-light min-vh-100">
+    <div class="container">
+        <!-- Breadcrumb & Header -->
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a href="{{ url_for('banking.dashboard') }}" class="text-decoration-none">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('banking.loans') }}" class="text-decoration-none">Loans</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Apply</li>
+            </ol>
+        </nav>
+
+        <div class="row g-4">
+            <!-- Left Column: Application Form -->
+            <div class="col-lg-7">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="card-header bg-navy text-white p-4">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="badge bg-emerald-subtle text-emerald-dark px-3 py-1 rounded-pill small mb-2">
+                                    <i class="bi bi-shield-check me-1"></i> Transparent Rates
+                                </span>
+                                <h4 class="fw-bold mb-1">Credit & Loan Application</h4>
+                                <p class="text-slate-300 small mb-0">Fill out the parameters below to submit your financing request.</p>
+                            </div>
+                            <div class="d-none d-sm-block text-end">
+                                <i class="bi bi-bank2 fs-1 text-slate-400 opacity-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="POST" id="loanApplyForm" novalidate>
+                            {{ form.hidden_tag() }}
+
+                            <!-- Disbursement Account -->
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-secondary">
+                                    {{ form.account_id.label.text }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.account_id(class="form-select", id="accountSelect") }}
+                                <small class="text-muted">Approved loan funds will be deposited directly into this account.</small>
+                                {% for error in form.account_id.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Loan Category -->
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-secondary">
+                                    {{ form.loan_type.label.text }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.loan_type(class="form-select", id="loanTypeSelect") }}
+                                {% for error in form.loan_type.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <!-- Loan Amount -->
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold text-secondary">
+                                        {{ form.amount.label.text }} <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light fw-bold text-muted">$</span>
+                                        {{ form.amount(class="form-control form-control-lg", placeholder="10000", id="loanAmountInput", min="500", max="500000", step="100") }}
+                                    </div>
+                                    <small class="text-muted">Min: $500 | Max: $500,000</small>
+                                    {% for error in form.amount.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+
+                                <!-- Repayment Term -->
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold text-secondary">
+                                        {{ form.term_months.label.text }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.term_months(class="form-select form-select-lg", id="termMonthsSelect") }}
+                                    <small class="text-muted">Amortized monthly instalments</small>
+                                    {% for error in form.term_months.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Verified Monthly Income -->
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-secondary">
+                                    {{ form.monthly_income.label.text }} <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light fw-bold text-muted">$</span>
+                                    {{ form.monthly_income(class="form-control", placeholder="4500", id="monthlyIncomeInput", min="500", step="50") }}
+                                </div>
+                                <small class="text-muted">Required by branch underwriters to assess debt-to-income (DTI).</small>
+                                {% for error in form.monthly_income.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Purpose / Notes -->
+                            <div class="mb-4">
+                                <label class="form-label small fw-semibold text-secondary">
+                                    {{ form.purpose.label.text }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.purpose(class="form-control", placeholder="e.g. Home renovation, tuition fees, business expansion") }}
+                                <small class="text-muted">Briefly explain how you plan to use these funds.</small>
+                                {% for error in form.purpose.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Buttons -->
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('banking.loans') }}" class="btn btn-light rounded-pill px-4">Cancel</a>
+                                {{ form.submit(class="btn btn-emerald rounded-pill px-4 flex-grow-1 text-white fw-semibold") }}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Live C++ Amortization Calculation Preview -->
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm rounded-4 bg-navy text-white p-4 sticky-top" style="top: 80px;">
+                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom border-white border-opacity-10 pb-3">
+                        <div>
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle font-monospace px-2 py-1 rounded-pill small mb-1">
+                                <i class="bi bi-cpu me-1"></i> C++ 14 Engine
+                            </span>
+                            <h5 class="fw-bold mb-0">Live Loan Estimate</h5>
+                        </div>
+                        <div class="spinner-border spinner-border-sm text-emerald d-none" id="calcSpinner" role="status"></div>
+                    </div>
+
+                    <div class="mb-4 text-center py-3 bg-white bg-opacity-10 rounded-4 border border-white border-opacity-15">
+                        <span class="text-slate-300 small text-uppercase fw-semibold tracking-wider d-block">Estimated Monthly EMI</span>
+                        <h2 class="display-5 fw-bold text-emerald mb-0" id="previewEmi">$0.00</h2>
+                        <span class="text-slate-400 small" id="previewTermSub">for 12 months</span>
+                    </div>
+
+                    <div class="vstack gap-3 small mb-4">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-slate-300">Requested Principal:</span>
+                            <span class="fw-bold" id="previewPrincipal">$10,000.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-slate-300">Annual Interest Rate (APR):</span>
+                            <span class="fw-bold text-warning" id="previewApr">8.5% Fixed</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-slate-300">Total Interest Payable:</span>
+                            <span class="fw-bold text-danger" id="previewInterest">$0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between border-top border-white border-opacity-10 pt-2">
+                            <span class="text-white fw-bold">Total Cost of Loan:</span>
+                            <span class="fw-bold text-emerald fs-6" id="previewTotal">$0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between border-top border-white border-opacity-10 pt-2">
+                            <span class="text-slate-300">Debt-to-Income (DTI):</span>
+                            <span class="fw-bold" id="previewDti">0.0%</span>
+                        </div>
+                    </div>
+
+                    <div class="p-3 rounded-3 bg-dark bg-opacity-50 border border-white border-opacity-10 small text-slate-300">
+                        <i class="bi bi-info-circle text-info me-1"></i>
+                        Apex Bank utilizes native C++ double-precision algorithms to guarantee zero rounding errors on payment schedules.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const amountInput = document.getElementById('loanAmountInput');
+    const typeSelect = document.getElementById('loanTypeSelect');
+    const termSelect = document.getElementById('termMonthsSelect');
+    const incomeInput = document.getElementById('monthlyIncomeInput');
+    const spinner = document.getElementById('calcSpinner');
+
+    const rates = {
+        'Personal Loan': 8.5,
+        'Home Mortgage': 6.2,
+        'Auto Loan': 7.0,
+        'Business Loan': 9.0,
+        'Education Loan': 5.5
+    };
+
+    function recalculate() {
+        const amount = parseFloat(amountInput.value) || 10000;
+        const loanType = typeSelect.value;
+        const term = parseInt(termSelect.value) || 12;
+        const income = parseFloat(incomeInput.value) || 0;
+        const apr = rates[loanType] || 7.5;
+
+        if (spinner) spinner.classList.remove('d-none');
+
+        // Request calculation from server (powered by C++ engine)
+        fetch("{{ url_for('banking.api_loan_calculate') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('input[name="csrf_token"]') ? document.querySelector('input[name="csrf_token"]').value : ''
+            },
+            body: JSON.stringify({
+                amount: amount,
+                loan_type: loanType,
+                term_months: term
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (spinner) spinner.classList.add('d-none');
+            if (data.monthly_payment) {
+                document.getElementById('previewEmi').textContent = '$' + Number(data.monthly_payment).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                document.getElementById('previewPrincipal').textContent = '$' + Number(amount).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                document.getElementById('previewApr').textContent = apr + '% Fixed';
+                document.getElementById('previewInterest').textContent = '$' + Number(data.total_interest).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                document.getElementById('previewTotal').textContent = '$' + Number(data.total_payment).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                document.getElementById('previewTermSub').textContent = `for ${term} months`;
+
+                if (income > 0) {
+                    const dti = ((data.monthly_payment / income) * 100).toFixed(1);
+                    const dtiEl = document.getElementById('previewDti');
+                    dtiEl.textContent = dti + '%';
+                    if (dti > 45) {
+                        dtiEl.className = 'fw-bold text-danger';
+                    } else if (dti > 30) {
+                        dtiEl.className = 'fw-bold text-warning';
+                    } else {
+                        dtiEl.className = 'fw-bold text-success';
+                    }
+                }
+            }
+        })
+        .catch(err => {
+            if (spinner) spinner.classList.add('d-none');
+            // Fallback JS math
+            const monthlyRate = (apr / 100.0) / 12.0;
+            const emi = (amount * monthlyRate * Math.pow(1 + monthlyRate, term)) / (Math.pow(1 + monthlyRate, term) - 1);
+            const total = emi * term;
+            const interest = total - amount;
+
+            document.getElementById('previewEmi').textContent = '$' + emi.toFixed(2);
+            document.getElementById('previewPrincipal').textContent = '$' + amount.toFixed(2);
+            document.getElementById('previewApr').textContent = apr + '% Fixed';
+            document.getElementById('previewInterest').textContent = '$' + interest.toFixed(2);
+            document.getElementById('previewTotal').textContent = '$' + total.toFixed(2);
+            document.getElementById('previewTermSub').textContent = `for ${term} months`;
+        });
+    }
+
+    amountInput.addEventListener('input', recalculate);
+    typeSelect.addEventListener('change', recalculate);
+    termSelect.addEventListener('change', recalculate);
+    incomeInput.addEventListener('input', recalculate);
+
+    // Initial calculation run
+    recalculate();
+});
+</script>
+{% endblock %}
+

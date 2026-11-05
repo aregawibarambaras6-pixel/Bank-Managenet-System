@@ -73,6 +73,11 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link text-emerald fw-semibold" href="{{ url_for('banking.loans') }}">
+                                    <i class="bi bi-cash-coin me-1"></i> Loans & Credit
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link text-info fw-semibold" href="{{ url_for('banking.calculator') }}">
                                     <i class="bi bi-cpu me-1 text-danger"></i> C++ Financial Tools
                                 </a>
@@ -81,6 +86,11 @@
                             <li class="nav-item">
                                 <a class="nav-link text-warning fw-semibold" href="{{ url_for('manager.dashboard') }}">
                                     <i class="bi bi-speedometer2 me-1"></i> Manager Operations Portal
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-warning fw-semibold" href="{{ url_for('manager.loans') }}">
+                                    <i class="bi bi-card-checklist me-1 text-emerald"></i> Loan Underwriting
                                 </a>
                             </li>
                         {% elif current_user.role == 'admin' %}
@@ -113,7 +123,7 @@
                     {% if current_user.is_authenticated %}
                         <div class="dropdown">
                             <button class="btn btn-navy-card text-white border border-secondary border-opacity-25 rounded-pill px-2 py-1 dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <img src="{{ current_user.avatar }}" alt="{{ current_user.role }}" class="rounded-circle shadow-sm" width="30" height="30" style="object-fit: cover; border: 2px solid {{ '#7c3aed' if current_user.role == 'admin' else ('#f59e0b' if current_user.role == 'manager' else '#10b981') }};">
+                                <img src="{{ current_user.avatar }}" alt="{{ current_user.role }}" class="rounded-circle shadow-sm avatar-role-{{ current_user.role }}" width="30" height="30" style="object-fit: cover;">
                                 {% if current_user.role == 'admin' %}
                                     <span class="badge text-white rounded-pill d-none d-sm-inline" style="background-color: #7c3aed;">ADMIN</span>
                                 {% elif current_user.role == 'manager' %}
@@ -126,13 +136,17 @@
                             <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 mt-2 p-2" style="min-width: 250px;">
                                 <li class="px-3 py-2 border-bottom mb-2 text-center">
                                     <div class="position-relative d-inline-block">
-                                        <img src="{{ current_user.avatar }}" alt="{{ current_user.role }}" class="rounded-circle shadow mb-2" width="60" height="60" style="border: 3px solid {{ '#7c3aed' if current_user.role == 'admin' else ('#f59e0b' if current_user.role == 'manager' else '#10b981') }};">
+                                        <img src="{{ current_user.avatar }}" alt="{{ current_user.role }}" class="rounded-circle shadow mb-2 avatar-role-{{ current_user.role }}-lg" width="60" height="60" style="object-fit: cover;">
                                     </div>
                                     <div class="fw-bold text-dark">{{ current_user.full_name or current_user.username }}</div>
                                     <div class="text-muted small">{{ current_user.email }}</div>
-                                    <span class="badge {{ 'bg-purple text-white' if current_user.role == 'admin' else ('bg-warning text-dark' if current_user.role == 'manager' else 'bg-success text-white') }} rounded-pill px-3 py-1 mt-1 small" {{ 'style="background-color: #7c3aed !important;"' if current_user.role == 'admin' else '' }}>
-                                        {{ current_user.role.upper() }}
-                                    </span>
+                                    {% if current_user.role == 'admin' %}
+                                        <span class="badge text-white rounded-pill px-3 py-1 mt-1 small" style="background-color: #7c3aed;">ADMIN</span>
+                                    {% elif current_user.role == 'manager' %}
+                                        <span class="badge bg-warning text-dark rounded-pill px-3 py-1 mt-1 small">MANAGER</span>
+                                    {% else %}
+                                        <span class="badge bg-success text-white rounded-pill px-3 py-1 mt-1 small">CUSTOMER</span>
+                                    {% endif %}
                                 </li>
                                 <li>
                                     <button class="dropdown-item rounded-3 text-primary fw-semibold" data-bs-toggle="modal" data-bs-target="#changePhotoModal">
@@ -142,10 +156,12 @@
                                 <li><hr class="dropdown-divider my-2"></li>
                                 {% if current_user.role == 'customer' %}
                                     <li><a class="dropdown-item rounded-3" href="{{ url_for('banking.dashboard') }}"><i class="bi bi-wallet2 me-2 text-primary"></i> Customer Dashboard</a></li>
+                                    <li><a class="dropdown-item rounded-3 text-emerald fw-semibold" href="{{ url_for('banking.loans') }}"><i class="bi bi-cash-coin me-2"></i> Loans & Credit Facilities</a></li>
                                     <li><a class="dropdown-item rounded-3" href="{{ url_for('banking.transactions') }}"><i class="bi bi-clock-history me-2 text-info"></i> Transaction History</a></li>
                                     <li><a class="dropdown-item rounded-3" href="{{ url_for('banking.calculator') }}"><i class="bi bi-cpu me-2 text-danger"></i> C++ Financial Tools</a></li>
                                 {% elif current_user.role == 'manager' %}
                                     <li><a class="dropdown-item rounded-3 text-warning fw-semibold" href="{{ url_for('manager.dashboard') }}"><i class="bi bi-briefcase-fill me-2"></i> Manager Control Center</a></li>
+                                    <li><a class="dropdown-item rounded-3 text-emerald fw-semibold" href="{{ url_for('manager.loans') }}"><i class="bi bi-card-checklist me-2"></i> Loan Underwriting</a></li>
                                 {% elif current_user.role == 'admin' %}
                                     <li><a class="dropdown-item rounded-3" href="{{ url_for('admin.dashboard') }}" style="color: #7c3aed;"><i class="bi bi-shield-shaded me-2"></i> Admin Control Center</a></li>
                                     <li><a class="dropdown-item rounded-3 text-warning fw-semibold" href="{{ url_for('admin.sql_console') }}"><i class="bi bi-database me-2"></i> Direct SQL Console</a></li>
@@ -290,21 +306,21 @@
                         
                         <div class="row g-3 mb-3">
                             {% set gallery = [
-                                ('/static/img/avatars/customer.svg', 'Modern Customer', '#10b981'),
-                                ('/static/img/avatars/customer2.svg', 'Casual Customer', '#0284c7'),
-                                ('/static/img/avatars/manager.svg', 'Branch Manager', '#f59e0b'),
-                                ('/static/img/avatars/admin.svg', 'Executive Admin', '#7c3aed'),
-                                ('/static/img/avatars/avatar_executive.svg', 'Executive Leader', '#334155'),
-                                ('/static/img/avatars/avatar_finance.svg', 'Finance Expert', '#059669'),
-                                ('/static/img/avatars/avatar_tech.svg', 'Cyber & Tech', '#2563eb'),
-                                ('/static/img/avatars/avatar_creative.svg', 'Creative Modern', '#db2777')
+                                ('/static/img/avatars/customer.svg', 'Modern Customer', 'preset-border-emerald'),
+                                ('/static/img/avatars/customer2.svg', 'Casual Customer', 'preset-border-sky'),
+                                ('/static/img/avatars/manager.svg', 'Branch Manager', 'preset-border-amber'),
+                                ('/static/img/avatars/admin.svg', 'Executive Admin', 'preset-border-purple'),
+                                ('/static/img/avatars/avatar_executive.svg', 'Executive Leader', 'preset-border-slate'),
+                                ('/static/img/avatars/avatar_finance.svg', 'Finance Expert', 'preset-border-teal'),
+                                ('/static/img/avatars/avatar_tech.svg', 'Cyber & Tech', 'preset-border-blue'),
+                                ('/static/img/avatars/avatar_creative.svg', 'Creative Modern', 'preset-border-pink')
                             ] %}
-                            {% for path, label, color in gallery %}
+                            {% for path, label, border_class in gallery %}
                             <div class="col-6 col-md-3">
                                 <div class="avatar-option-card p-3 rounded-4 border border-navy-light text-center h-100 {{ 'active-avatar-choice' if current_user.avatar == path else '' }}" 
                                      onclick="selectPresetAvatar('{{ path }}', this)" 
                                      style="cursor: pointer; transition: all 0.25s ease; background: rgba(255, 255, 255, 0.03);">
-                                    <img src="{{ path }}" alt="{{ label }}" class="rounded-circle mb-2 shadow-sm" width="64" height="64" style="object-fit: cover; border: 2px solid {{ color }};">
+                                    <img src="{{ path }}" alt="{{ label }}" class="rounded-circle mb-2 shadow-sm {{ border_class }}" width="64" height="64" style="object-fit: cover;">
                                     <div class="small fw-semibold text-white mb-0" style="font-size: 0.8rem;">{{ label }}</div>
                                 </div>
                             </div>

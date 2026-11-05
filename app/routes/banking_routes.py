@@ -3,7 +3,9 @@ from flask_login import current_user
 from app.extensions import db
 from app.models.account import Account
 from app.models.transaction import Transaction
+from app.models.loan import Loan
 from app.forms.banking_forms import DepositForm, WithdrawForm, TransferForm, CreateAccountForm
+from app.forms.loan_forms import LoanApplicationForm, LOAN_TYPE_RATES
 from app.utils.decorators import customer_required
 from app.utils.java_service import analyze_transaction_risk
 from app.utils.cpp_engine import calculate_compound_interest, calculate_loan_amortization, generate_ledger_hash
@@ -362,3 +364,108 @@ def transactions():
         transactions=all_transactions,
         filter_type=filter_type
     )
+
+@banking_bp.route('/loans')
+@customer_required
+def loans():
+    user_loans = Loan.query.filter_by(user_id=current_user.id).order_by(Loan.created_at.desc()).all()
+    
+    # Financial metrics for customer's loans
+    total_borrowed = sum(l.amount for l in user_loans if l.status == 'APPROVED')
+    total_monthly_emi = sum(l.monthly_payment for l in user_loans if l.status == 'APPROVED')
+    pending_count = sum(1 for l in user_loans if l.status == 'PENDING')
+
+    return render_template(
+        'banking/loans.html',
+        loans=user_loans,
+        total_borrowed=total_borrowed,
+        total_monthly_emi=total_monthly_emi,
+        pending_count=pending_count
+    )
+
+@banking_bp.route('/loans/apply', methods=['GET', 'POST'])
+@customer_required
+def apply_loan():
+    accounts = Account.query.filter_by(user_id=current_user.id, status='active').all()
+    if not accounts:
+        flash('You must have at least one active bank account to apply for a loan.', 'warning')
+        return redirect(url_for('banking.dashboard'))
+
+    form = LoanApplicationForm()
+    form.account_id.choices = [
+        (acc.id, f"Account #{acc.account_number} ({acc.account_type.title()} - Available: ${acc.balance:,.2f})")
+        for acc in accounts
+    ]
+
+    if form.validate_on_submit():
+        account_id = form.account_id.data
+        disbursal_account = Account.query.filter_by(id=account_id, user_id=current_user.id).first()
+        if not disbursal_account:
+            flash('Invalid account selected.', 'danger')
+            return redirect(url_for('banking.apply_loan'))
+
+        amount = float(form.amount.data)
+        term_months = int(form.term_months.data)
+        loan_type = form.loan_type.data
+        annual_rate = LOAN_TYPE_RATES.get(loan_type, 7.5)
+        monthly_income = float(form.monthly_income.data)
+        purpose = form.purpose.data.strip()
+
+        # Compute exact amortization via C++ Financial Engine
+        calc_result = calculate_loan_amortization(amount, annual_rate, term_months)
+        monthly_payment = float(calc_result.get('monthly_payment', 0.0))
+        total_payable = float(calc_result.get('total_payment', 0.0))
+        total_interest = float(calc_result.get('total_interest', 0.0))
+
+        # Underwriting Debt-to-Income check note
+        dti_ratio = (monthly_payment / monthly_income) * 100.0 if monthly_income > 0 else 100.0
+
+        loan = Loan(
+            loan_reference=Loan.generate_loan_reference(),
+            user_id=current_user.id,
+            account_id=disbursal_account.id,
+            loan_type=loan_type,
+            amount=amount,
+            annual_rate=annual_rate,
+            term_months=term_months,
+            monthly_payment=monthly_payment,
+            total_payable=total_payable,
+            total_interest=total_interest,
+            purpose=purpose,
+            monthly_income=monthly_income,
+            status='PENDING'
+        )
+
+        db.session.add(loan)
+        db.session.commit()
+
+        flash(
+            f'🎉 Loan application ({loan.loan_reference}) for ${amount:,.2f} submitted successfully! '
+            f'Estimated EMI: ${monthly_payment:,.2f}/mo. It is now awaiting Branch Manager review.',
+            'success'
+        )
+        return redirect(url_for('banking.loans'))
+
+    return render_template(
+        'banking/apply_loan.html',
+        form=form,
+        rates=LOAN_TYPE_RATES
+    )
+
+@banking_bp.route('/api/loans/calculate', methods=['POST'])
+@customer_required
+def api_loan_calculate():
+    data = request.get_json() or {}
+    try:
+        amount = float(data.get('amount', 10000.0))
+        loan_type = data.get('loan_type', 'Personal Loan')
+        term_months = int(data.get('term_months', 12))
+        annual_rate = LOAN_TYPE_RATES.get(loan_type, 7.5)
+
+        result = calculate_loan_amortization(amount, annual_rate, term_months)
+        result['annual_rate'] = annual_rate
+        result['loan_type'] = loan_type
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+

@@ -81,19 +81,43 @@
                 </div>
             </div>
             <div class="col-md-3 col-6">
-                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="p-3 rounded-3 bg-secondary-subtle text-secondary">
-                            <i class="bi bi-database-check fs-4"></i>
-                        </div>
-                        <div>
-                            <span class="text-muted small text-uppercase">ACID Engine</span>
-                            <h4 class="fw-bold text-navy-dark mb-0">SQLite 3</h4>
+                <a href="{{ url_for('manager.loans', status='PENDING') }}" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 {{ 'border-start border-4 border-warning' if pending_loans_count > 0 }}">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="p-3 rounded-3 bg-warning-subtle text-warning">
+                                <i class="bi bi-hourglass-split fs-4"></i>
+                            </div>
+                            <div>
+                                <span class="text-muted small text-uppercase">Pending Loans</span>
+                                <h4 class="fw-bold text-navy-dark mb-0">{{ pending_loans_count }}</h4>
+                                {% if pending_loans_count > 0 %}
+                                <small class="text-warning fw-semibold">Action required &rarr;</small>
+                                {% else %}
+                                <small class="text-muted">Queue clear</small>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
         </div>
+
+        {% if pending_loans_count > 0 %}
+        <div class="alert alert-warning border-0 rounded-4 shadow-sm p-3 mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-warning text-dark p-2 rounded-circle">
+                    <i class="bi bi-bell-fill fs-5"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold mb-0 text-dark">{{ pending_loans_count }} Loan Application(s) Awaiting Review</h6>
+                    <small class="text-muted">Customers have submitted credit applications awaiting manager underwriting and fund disbursement.</small>
+                </div>
+            </div>
+            <a href="{{ url_for('manager.loans', status='PENDING') }}" class="btn btn-warning rounded-pill px-4 fw-semibold text-dark btn-sm">
+                Review Queue <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+        {% endif %}
 
         <!-- Accounts Management Section -->
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">

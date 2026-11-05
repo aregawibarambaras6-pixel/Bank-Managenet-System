@@ -7,13 +7,17 @@ from app.extensions import db
 from app.models.user import User
 from app.models.account import Account
 from app.models.transaction import Transaction
+from app.models.loan import Loan
 
 def seed_demo_data():
-    # Only seed if no users exist
-    if User.query.first():
-        return
+    """Seed initial demo users, accounts, transactions, and loans."""
+    if not User.query.first():
+        _seed_users_and_accounts()
 
-    print("🌱 Seeding initial demo users and banking records...")
+    _seed_loans()
+
+def _seed_users_and_accounts():
+    print("[*] Seeding initial demo users and banking records...")
 
     # 1. Demo Customer: Alex Mercer
     customer = User(
@@ -160,4 +164,52 @@ def seed_demo_data():
     db.session.add(admin)
 
     db.session.commit()
-    print("✅ Demo banking records seeded successfully.")
+    print("[OK] Demo banking records seeded successfully.")
+
+def _seed_loans():
+    """Seed demo loan applications if none exist."""
+    if Loan.query.first() is not None:
+        return
+
+    customer_user = User.query.filter_by(username='customer').first()
+    if customer_user and customer_user.accounts:
+        checking_acc = customer_user.accounts[0]
+        now = datetime.utcnow()
+        demo_loan1 = Loan(
+            loan_reference='LN-83921045',
+            user_id=customer_user.id,
+            account_id=checking_acc.id,
+            loan_type='Auto Loan',
+            amount=18000.00,
+            annual_rate=7.0,
+            term_months=36,
+            monthly_payment=555.74,
+            total_payable=20006.64,
+            total_interest=2006.64,
+            purpose='Electric vehicle purchase',
+            monthly_income=6500.00,
+            status='APPROVED',
+            manager_notes='Approved by Branch Underwriting following income verification.',
+            created_at=now - timedelta(days=20),
+            reviewed_at=now - timedelta(days=19)
+        )
+        demo_loan2 = Loan(
+            loan_reference='LN-91402831',
+            user_id=customer_user.id,
+            account_id=checking_acc.id,
+            loan_type='Personal Loan',
+            amount=5000.00,
+            annual_rate=8.5,
+            term_months=12,
+            monthly_payment=436.09,
+            total_payable=5233.08,
+            total_interest=233.08,
+            purpose='Home office renovation and equipment',
+            monthly_income=6500.00,
+            status='PENDING',
+            created_at=now - timedelta(hours=5)
+        )
+        db.session.add(demo_loan1)
+        db.session.add(demo_loan2)
+        db.session.commit()
+        print("[OK] Demo loan applications seeded successfully.")

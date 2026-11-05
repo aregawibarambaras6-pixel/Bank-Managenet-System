@@ -142,7 +142,7 @@
                             <td class="ps-4 font-monospace text-muted">#{{ "%04d" % u.id }}</td>
                             <td>
                                 <div class="d-flex align-items-center gap-2">
-                                    <img src="{{ u.avatar }}" alt="{{ u.role }}" class="rounded-circle shadow-sm flex-shrink-0" width="34" height="34" style="object-fit: cover; border: 2px solid {{ '#7c3aed' if u.role == 'admin' else ('#f59e0b' if u.role == 'manager' else '#10b981') }};">
+                                    <img src="{{ u.avatar }}" alt="{{ u.role }}" class="rounded-circle shadow-sm flex-shrink-0 avatar-role-{{ u.role }}" width="34" height="34" style="object-fit: cover;">
                                     <span class="fw-bold text-navy-dark">{{ u.full_name or '—' }}</span>
                                 </div>
                             </td>

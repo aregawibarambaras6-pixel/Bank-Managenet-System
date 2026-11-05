@@ -78,6 +78,29 @@ CREATE TABLE IF NOT EXISTS ledger_checksums (
     generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 7. Loans & Credit Facilities Table
+CREATE TABLE IF NOT EXISTS loans (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    loan_reference VARCHAR(24) NOT NULL UNIQUE,
+    user_id INTEGER NOT NULL,
+    account_id INTEGER NOT NULL,
+    loan_type VARCHAR(50) NOT NULL DEFAULT 'Personal Loan',
+    amount DECIMAL(15, 2) NOT NULL,
+    annual_rate DECIMAL(5, 2) NOT NULL DEFAULT 7.50,
+    term_months INTEGER NOT NULL DEFAULT 12,
+    monthly_payment DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    total_payable DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    total_interest DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    purpose VARCHAR(255) NOT NULL,
+    monthly_income DECIMAL(15, 2) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING', -- 'PENDING', 'APPROVED', 'REJECTED'
+    manager_notes VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    reviewed_at TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE CASCADE
+);
+
 -- Indices for High Performance Queries
 CREATE INDEX IF NOT EXISTS idx_users_username ON users (username);
 CREATE INDEX IF NOT EXISTS idx_accounts_number ON accounts (account_number);
@@ -86,4 +109,7 @@ CREATE INDEX IF NOT EXISTS idx_transactions_ref ON transactions (reference_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_acc ON transactions (account_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_time ON transactions (timestamp);
 CREATE INDEX IF NOT EXISTS idx_fraud_ref ON fraud_audit_logs (reference_id);
+CREATE INDEX IF NOT EXISTS idx_loans_ref ON loans (loan_reference);
+CREATE INDEX IF NOT EXISTS idx_loans_user ON loans (user_id);
+CREATE INDEX IF NOT EXISTS idx_loans_status ON loans (status);
 
