@@ -34,6 +34,9 @@ A modern, secure, and full-featured **Bank Management System** built with **Flas
 ### 👤 Customer Portal
 - **Multi-Account Dashboard**: Real-time overview of active checking and high-yield savings accounts with balances and status.
 - **Account Numbering**: Standard 13-digit account numbers (e.g., `1000XXXXXXXXX`).
+- **Debit & Virtual Card Management**: Issue instant Visa or Mastercard virtual cards and physical debit cards in four luxury editions (Emerald, Navy, Platinum, Gold). Features one-click freeze/unfreeze, daily spending ceiling controls, PIN management, and masked card security.
+- **Official Account Statements & CSV Export**: Generate print-ready official bank statements with opening/closing balances and letterhead, or download itemized ledger data as structured CSV spreadsheets.
+- **Real-Time Notification Alerts**: Navbar notification bell with live counters for transaction confirmations, card status changes, and loan approvals.
 - **Loans & Credit Facilities**: Apply for fixed-rate personal, auto, mortgage, business, and education loans with real-time C++ amortized EMI schedules and debt-to-income (DTI) risk estimates.
 - **Transaction History**: Filterable ledger with transaction reference IDs, dates, debit/credit indicators, and running balance tracking.
 - **Beneficiaries Directory**: Save, organize, and quickly send money to trusted payees.
@@ -60,6 +63,7 @@ A modern, secure, and full-featured **Bank Management System** built with **Flas
 
 ### 👔 Branch Manager Portal
 - Comprehensive overview of all branch customer accounts.
+- **Card Portfolio Supervision**: Search, audit, and remotely freeze/unfreeze any customer debit or virtual card.
 - **Loan Underwriting & Credit Review**: Review pending customer loan applications, evaluate debt-to-income (DTI) metrics, and approve/reject requests with automated account crediting and ledger audit trail generation.
 - Audit live transactions across all customer accounts.
 - Freeze, unfreeze, or suspend accounts for risk management and compliance.

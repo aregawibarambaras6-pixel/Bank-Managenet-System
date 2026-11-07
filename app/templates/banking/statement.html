@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}Account Statement - Apex Bank{% endblock %}
+
+{% block content %}
+<div class="py-4 bg-light min-vh-100">
+    <div class="container">
+        <!-- Control & Action Bar (Hidden during Print) -->
+        <div class="card border-0 shadow-sm rounded-4 p-3 mb-4 no-print bg-white">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <a href="{{ url_for('banking.transactions') }}" class="btn btn-outline-secondary rounded-pill btn-sm px-3">
+                        <i class="bi bi-arrow-left me-1"></i> Ledger
+                    </a>
+                    <h5 class="fw-bold text-navy-dark mb-0">Official Account Statement</h5>
+                </div>
+                <!-- Filters & Export -->
+                <form method="GET" action="{{ url_for('banking.statement') }}" class="d-flex flex-wrap align-items-center gap-2">
+                    <select name="account_id" class="form-select form-select-sm rounded-pill px-3" onchange="this.form.submit()">
+                        {% for acc in accounts %}
+                            <option value="{{ acc.id }}" {{ 'selected' if acc.id == selected_account.id else '' }}>
+                                {{ acc.account_number }} ({{ acc.account_type.title() }})
+                            </option>
+                        {% endfor %}
+                    </select>
+
+                    <select name="period" class="form-select form-select-sm rounded-pill px-3" onchange="this.form.submit()">
+                        <option value="7d" {{ 'selected' if period == '7d' else '' }}>Last 7 Days</option>
+                        <option value="30d" {{ 'selected' if period == '30d' else '' }}>Last 30 Days</option>
+                        <option value="90d" {{ 'selected' if period == '90d' else '' }}>Last 90 Days</option>
+                        <option value="year" {{ 'selected' if period == 'year' else '' }}>Last 12 Months</option>
+                        <option value="all" {{ 'selected' if period == 'all' else '' }}>Full History</option>
+                    </select>
+
+                    <a href="{{ url_for('banking.export_transactions_csv', account_id=selected_account.id) }}" class="btn btn-outline-success btn-sm rounded-pill px-3">
+                        <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export CSV
+                    </a>
+
+                    <button type="button" onclick="window.print()" class="btn btn-navy text-white btn-sm rounded-pill px-3">
+                        <i class="bi bi-printer me-1"></i> Print / Save PDF
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Printable Statement Document -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 p-lg-5 bg-white position-relative">
+            <!-- Header Letterhead -->
+            <div class="row align-items-center pb-4 mb-4 border-bottom">
+                <div class="col-sm-6">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <div class="brand-icon-wrapper p-2 bg-navy text-white rounded-3">
+                            <i class="bi bi-bank2 fs-4"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold text-navy-dark mb-0">APEX BANK</h4>
+                            <span class="text-muted small">Global Retail & Commercial Banking</span>
+                        </div>
+                    </div>
+                    <div class="text-secondary small">
+                        <div>100 Wall Street, Financial District</div>
+                        <div>New York, NY 10005, United States</div>
+                        <div>support@apexbank.com &bull; +1 (800) 555-APEX</div>
+                    </div>
+                </div>
+                <div class="col-sm-6 text-sm-end mt-3 mt-sm-0">
+                    <span class="badge bg-navy text-white px-3 py-2 rounded-pill font-monospace mb-2">OFFICIAL STATEMENT</span>
+                    <h5 class="fw-bold text-navy-dark mb-1">ACCOUNT STATEMENT</h5>
+                    <div class="text-muted small">Generated on: <strong>{{ statement_date.strftime('%B %d, %Y - %H:%M UTC') }}</strong></div>
+                    <div class="text-muted small">Period: <strong>{{ period_label }}</strong></div>
+                </div>
+            </div>
+
+            <!-- Account Details Card -->
+            <div class="row g-3 mb-4 p-3 bg-light rounded-4 small">
+                <div class="col-md-6">
+                    <div class="text-muted text-uppercase fw-semibold" style="font-size: 0.7rem;">Account Holder</div>
+                    <div class="fw-bold text-dark fs-6">{{ current_user.full_name or current_user.username }}</div>
+                    <div class="text-muted">{{ current_user.email }}</div>
+                    <div class="text-muted">Customer ID: APEX-{{ "%05d" % current_user.id }}</div>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="text-muted text-uppercase fw-semibold" style="font-size: 0.7rem;">Account Specification</div>
+                    <div class="fw-bold font-monospace fs-6 text-navy-dark">#{{ selected_account.account_number }}</div>
+                    <div><span class="badge bg-secondary-subtle text-secondary text-uppercase">{{ selected_account.account_type }} ACCOUNT</span></div>
+                    <div class="text-muted">Currency: {{ selected_account.currency }} &bull; Status: {{ selected_account.status.upper() }}</div>
+                </div>
+            </div>
+
+            <!-- Financial Summary Matrix -->
+            <div class="row g-3 mb-4 text-center">
+                <div class="col-md">
+                    <div class="p-3 border rounded-3 bg-white">
+                        <span class="text-muted small d-block">Opening Balance</span>
+                        <h5 class="fw-bold text-secondary mb-0">${{ "{:,.2f}".format(opening_balance) }}</h5>
+                    </div>
+                </div>
+                <div class="col-md">
+                    <div class="p-3 border rounded-3 bg-white">
+                        <span class="text-muted small d-block">Total Inflows / Credits (+)</span>
+                        <h5 class="fw-bold text-success mb-0">+${{ "{:,.2f}".format(total_credits) }}</h5>
+                    </div>
+                </div>
+                <div class="col-md">
+                    <div class="p-3 border rounded-3 bg-white">
+                        <span class="text-muted small d-block">Total Outflows / Debits (-)</span>
+                        <h5 class="fw-bold text-danger mb-0">-${{ "{:,.2f}".format(total_debits) }}</h5>
+                    </div>
+                </div>
+                <div class="col-md">
+                    <div class="p-3 border rounded-3 bg-emerald-subtle">
+                        <span class="text-emerald-dark small d-block fw-semibold">Closing Balance</span>
+                        <h5 class="fw-bold text-emerald-dark mb-0">${{ "{:,.2f}".format(closing_balance) }}</h5>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ledger Table -->
+            <div class="table-responsive mb-4">
+                <table class="table table-bordered table-hover align-middle small mb-0">
+                    <thead class="table-light text-uppercase" style="font-size: 0.75rem;">
+                        <tr>
+                            <th>Date / Time (UTC)</th>
+                            <th>Reference ID</th>
+                            <th>Description</th>
+                            <th>Counterparty</th>
+                            <th class="text-end">Debit (-)</th>
+                            <th class="text-end">Credit (+)</th>
+                            <th class="text-end">Running Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if transactions %}
+                            {% for t in transactions %}
+                            {% set is_credit = t.transaction_type in ['deposit', 'transfer_in'] %}
+                            <tr>
+                                <td>{{ t.timestamp.strftime('%b %d, %Y %H:%M') }}</td>
+                                <td class="font-monospace text-primary fw-semibold">{{ t.reference_id }}</td>
+                                <td>
+                                    <div class="fw-semibold text-dark">{{ t.description or t.transaction_type }}</div>
+                                    <span class="badge bg-light text-muted border" style="font-size: 0.65rem;">{{ t.transaction_type }}</span>
+                                </td>
+                                <td class="font-monospace text-muted">{{ t.related_account or '—' }}</td>
+                                <td class="text-end font-monospace text-danger">
+                                    {{ "-$" + "{:,.2f}".format(t.amount) if not is_credit else "—" }}
+                                </td>
+                                <td class="text-end font-monospace text-success fw-semibold">
+                                    {{ "+$" + "{:,.2f}".format(t.amount) if is_credit else "—" }}
+                                </td>
+                                <td class="text-end font-monospace fw-bold text-dark">
+                                    ${{ "{:,.2f}".format(t.balance_after) }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted">
+                                    No ledger activity recorded for this account during the selected timeframe.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Official Statement Footer -->
+            <div class="pt-4 border-top text-secondary small">
+                <div class="row align-items-center">
+                    <div class="col-sm-8">
+                        <p class="mb-1">
+                            <i class="bi bi-shield-check text-success me-1"></i>
+                            This statement has been electronically authenticated and stamped by the Apex Bank Core Banking & Ledger Engine.
+                        </p>
+                        <p class="text-muted mb-0" style="font-size: 0.75rem;">
+                            If you notice any discrepancies, please notify Apex Customer Support within 30 days of the statement issue date.
+                        </p>
+                    </div>
+                    <div class="col-sm-4 text-sm-end mt-2 mt-sm-0">
+                        <div class="font-monospace small text-muted">Page 1 of 1</div>
+                        <div class="font-monospace text-muted" style="font-size: 0.65rem;">HASH: SHA256-AUTHENTICATED</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

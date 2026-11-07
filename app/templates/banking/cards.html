@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+
+{% block title %}Cards & Digital Wallets - Apex Bank{% endblock %}
+
+{% block content %}
+<div class="py-4 bg-light min-vh-100">
+    <div class="container">
+        <!-- Top Overview Banner -->
+        <div class="card border-0 shadow-sm rounded-4 bg-navy text-white mb-4 overflow-hidden position-relative">
+            <div class="hero-bg-glow"></div>
+            <div class="card-body p-4 p-lg-5 position-relative z-1">
+                <div class="row align-items-center g-4">
+                    <div class="col-lg-7">
+                        <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                            <span class="badge bg-emerald-subtle text-emerald-dark px-3 py-1 rounded-pill small">
+                                <i class="bi bi-shield-check me-1"></i> Visa & Mastercard Certified
+                            </span>
+                            <span class="badge bg-info-subtle text-info border border-info-subtle px-3 py-1 rounded-pill small">
+                                <i class="bi bi-phone-fill me-1"></i> Apple Pay & Google Pay Ready
+                            </span>
+                        </div>
+                        <h2 class="h3 fw-bold mb-1">Debit Cards & Digital Wallets</h2>
+                        <p class="text-slate-300 mb-0 small">
+                            Manage your virtual and physical cards, toggle instant security freezes, update daily limits, and issue new payment cards.
+                        </p>
+                    </div>
+                    <div class="col-lg-5 text-lg-end">
+                        <a href="{{ url_for('banking.issue_card') }}" class="btn btn-emerald rounded-pill px-4 py-2 text-white fw-semibold shadow-sm">
+                            <i class="bi bi-plus-circle me-1"></i> Issue New Card
+                        </a>
+                        <a href="{{ url_for('banking.dashboard') }}" class="btn btn-outline-light rounded-pill px-3 py-2 ms-2">
+                            <i class="bi bi-arrow-left me-1"></i> Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metric KPI Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-3 border-start border-4 border-success h-100">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted small text-uppercase fw-semibold">Active Cards</span>
+                            <h3 class="fw-bold text-navy-dark mb-0 mt-1">{{ active_count }}</h3>
+                            <small class="text-success"><i class="bi bi-check-circle-fill me-1"></i>Ready for POS & Online</small>
+                        </div>
+                        <div class="rounded-circle bg-success-subtle p-3 text-success">
+                            <i class="bi bi-credit-card-2-front fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-3 border-start border-4 border-warning h-100">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted small text-uppercase fw-semibold">Frozen / Locked</span>
+                            <h3 class="fw-bold text-navy-dark mb-0 mt-1">{{ frozen_count }}</h3>
+                            <small class="text-muted"><i class="bi bi-snow me-1"></i>Temporarily disabled</small>
+                        </div>
+                        <div class="rounded-circle bg-warning-subtle p-3 text-warning">
+                            <i class="bi bi-snow fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-3 border-start border-4 border-primary h-100">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted small text-uppercase fw-semibold">Daily Spending Power</span>
+                            <h3 class="fw-bold text-navy-dark mb-0 mt-1">${{ "{:,.2f}".format(total_spending_power) }}</h3>
+                            <small class="text-primary"><i class="bi bi-shield-lock me-1"></i>Aggregated daily limit</small>
+                        </div>
+                        <div class="rounded-circle bg-primary-subtle p-3 text-primary">
+                            <i class="bi bi-speedometer fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cards Section -->
+        {% if cards %}
+        <div class="row g-4 mb-5">
+            {% for card in cards %}
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                    <div class="row g-4 align-items-center">
+                        <!-- Left: Visual Bank Card Graphic -->
+                        <div class="col-sm-12 col-xl-7">
+                            <div class="debit-card-visual card-theme-{{ card.card_design }} {{ 'card-frozen-backdrop' if card.status == 'frozen' else '' }}" id="cardVisual{{ card.id }}">
+                                {% if card.status == 'frozen' %}
+                                <div class="frozen-badge-overlay rounded-4">
+                                    <i class="bi bi-snow fs-1 mb-1"></i>
+                                    <span>CARD FROZEN</span>
+                                    <small class="text-light fw-normal mt-1 opacity-75">Tap Unfreeze to unlock</small>
+                                </div>
+                                {% endif %}
+
+                                <!-- Top Row: Chip & Contactless & Brand -->
+                                <div class="d-flex justify-content-between align-items-center position-relative z-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="emv-chip"></div>
+                                        <i class="bi bi-wifi fs-4 opacity-75" style="transform: rotate(90deg);" title="Contactless Enabled"></i>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="fw-bold tracking-wider small d-block">APEX BANK</span>
+                                        <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-2 py-0 small text-uppercase" style="font-size: 0.65rem;">
+                                            {{ card.card_type }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Middle Row: Card Number -->
+                                <div class="my-3 position-relative z-2">
+                                    <div class="font-monospace fs-5 fw-bold letter-spacing-1 d-flex align-items-center justify-content-between">
+                                        <span id="cardNumText{{ card.id }}">{{ card.masked_number }}</span>
+                                        <button class="btn btn-link btn-sm text-white p-0 opacity-75 hover-opacity-100" onclick="toggleCardDetails({{ card.id }}, '{{ card.formatted_number }}', '{{ card.masked_number }}', '{{ card.cvv }}')" title="Show / Hide Numbers">
+                                            <i class="bi bi-eye" id="cardEyeIcon{{ card.id }}"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Bottom Row: Holder & Expiry & Network -->
+                                <div class="d-flex justify-content-between align-items-end position-relative z-2 small">
+                                    <div>
+                                        <span class="text-uppercase opacity-75 d-block" style="font-size: 0.65rem;">Cardholder</span>
+                                        <span class="fw-semibold text-uppercase font-monospace text-truncate d-inline-block" style="max-width: 140px;">
+                                            {{ card.card_holder }}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span class="text-uppercase opacity-75 d-block" style="font-size: 0.65rem;">Expires</span>
+                                        <span class="fw-semibold font-monospace">{{ card.expiry_date }}</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-uppercase opacity-75 d-block" style="font-size: 0.65rem;">CVV</span>
+                                        <span class="fw-semibold font-monospace" id="cardCvvText{{ card.id }}">•••</span>
+                                    </div>
+                                    <div class="text-end">
+                                        {% if card.card_network.lower() == 'mastercard' %}
+                                            <span class="fw-bold fs-6 fst-italic text-warning">Mastercard</span>
+                                        {% else %}
+                                            <span class="fw-bold fs-5 fst-italic">VISA</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right: Card Controls & Information -->
+                        <div class="col-sm-12 col-xl-5">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge {{ 'bg-success-subtle text-success' if card.status == 'active' else 'bg-warning-subtle text-warning' }} rounded-pill px-3 py-1 fw-semibold text-uppercase small">
+                                    <i class="bi {{ 'bi-check-circle-fill' if card.status == 'active' else 'bi-snow' }} me-1"></i>{{ card.status }}
+                                </span>
+                                <span class="text-muted small">Linked #{{ card.account.account_number[-4:] if card.account else 'N/A' }}</span>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between text-muted small mb-1">
+                                    <span>Daily Limit</span>
+                                    <span class="fw-bold text-dark">${{ "{:,.2f}".format(card.daily_limit) }}</span>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-emerald" role="progressbar" style="width: 15%;" aria-valuenow="15" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <small class="text-muted" style="font-size: 0.72rem;">$0.00 spent today</small>
+                            </div>
+
+                            <!-- Actions Stack -->
+                            <div class="vstack gap-2">
+                                <form method="POST" action="{{ url_for('banking.toggle_card_freeze', card_id=card.id) }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+                                    {% if card.status == 'active' %}
+                                    <button type="submit" class="btn btn-outline-warning btn-sm rounded-pill w-100 fw-semibold">
+                                        <i class="bi bi-snow me-1"></i> Freeze Card
+                                    </button>
+                                    {% else %}
+                                    <button type="submit" class="btn btn-outline-success btn-sm rounded-pill w-100 fw-semibold">
+                                        <i class="bi bi-unlock me-1"></i> Unfreeze Card
+                                    </button>
+                                    {% endif %}
+                                </form>
+
+                                <button class="btn btn-light btn-sm rounded-pill border w-100 text-secondary" data-bs-toggle="modal" data-bs-target="#limitModal{{ card.id }}">
+                                    <i class="bi bi-sliders me-1"></i> Change Daily Limit
+                                </button>
+
+                                <button class="btn btn-light btn-sm rounded-pill border w-100 text-secondary" data-bs-toggle="modal" data-bs-target="#pinModal{{ card.id }}">
+                                    <i class="bi bi-key me-1"></i> Change 4-Digit PIN
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- UPDATE LIMIT MODAL -->
+                <div class="modal fade" id="limitModal{{ card.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content rounded-4 border-0 shadow">
+                            <div class="modal-header bg-navy text-white border-0">
+                                <h5 class="modal-title fw-bold">
+                                    <i class="bi bi-sliders text-emerald me-2"></i>Daily Spending Limit
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <form method="POST" action="{{ url_for('banking.update_card_limit', card_id=card.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+                                <div class="modal-body p-4">
+                                    <p class="text-secondary small mb-3">
+                                        Set a maximum daily cap for purchases and ATM withdrawals on card <strong>{{ card.masked_number }}</strong>.
+                                    </p>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">New Daily Limit ($)</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light text-muted fw-bold">$</span>
+                                            <input type="number" name="daily_limit" class="form-control form-control-lg" value="{{ card.daily_limit }}" min="50" max="50000" step="50" required>
+                                        </div>
+                                        <small class="text-muted">Min: $50.00 &bull; Max: $50,000.00</small>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-0 p-4 pt-0">
+                                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-emerald rounded-pill px-4 text-white fw-semibold">Save Limit</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CHANGE PIN MODAL -->
+                <div class="modal fade" id="pinModal{{ card.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content rounded-4 border-0 shadow">
+                            <div class="modal-header bg-navy text-white border-0">
+                                <h5 class="modal-title fw-bold">
+                                    <i class="bi bi-key text-warning me-2"></i>Change Security PIN
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <form method="POST" action="{{ url_for('banking.change_card_pin', card_id=card.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+                                <div class="modal-body p-4">
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">Current 4-Digit PIN</label>
+                                        <input type="password" name="current_pin" class="form-control" maxlength="4" pattern="\d{4}" placeholder="••••" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">New 4-Digit PIN</label>
+                                        <input type="password" name="new_pin" class="form-control" maxlength="4" pattern="\d{4}" placeholder="••••" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-secondary">Confirm New PIN</label>
+                                        <input type="password" name="confirm_new_pin" class="form-control" maxlength="4" pattern="\d{4}" placeholder="••••" required>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-0 p-4 pt-0">
+                                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-warning rounded-pill px-4 text-dark fw-semibold">Update PIN</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card border-0 shadow-sm rounded-4 p-5 text-center my-4 bg-white">
+            <div class="display-1 text-muted mb-3 opacity-25">
+                <i class="bi bi-credit-card-2-front"></i>
+            </div>
+            <h4 class="fw-bold text-navy-dark">No Payment Cards Issued</h4>
+            <p class="text-muted small max-w-400 mx-auto mb-4">
+                You do not have any active virtual or physical cards. Issue an instant virtual card now to begin making seamless online and contactless purchases.
+            </p>
+            <div>
+                <a href="{{ url_for('banking.issue_card') }}" class="btn btn-emerald rounded-pill px-4 py-2 text-white fw-semibold">
+                    <i class="bi bi-plus-circle me-1"></i> Issue Your First Card
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function toggleCardDetails(cardId, formattedNum, maskedNum, realCvv) {
+    const numEl = document.getElementById('cardNumText' + cardId);
+    const cvvEl = document.getElementById('cardCvvText' + cardId);
+    const eyeIcon = document.getElementById('cardEyeIcon' + cardId);
+
+    if (numEl.textContent === maskedNum) {
+        numEl.textContent = formattedNum;
+        cvvEl.textContent = realCvv;
+        eyeIcon.className = 'bi bi-eye-slash';
+    } else {
+        numEl.textContent = maskedNum;
+        cvvEl.textContent = '•••';
+        eyeIcon.className = 'bi bi-eye';
+    }
+}
+</script>
+{% endblock %}

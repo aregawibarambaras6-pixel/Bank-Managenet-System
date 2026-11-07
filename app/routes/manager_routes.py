@@ -5,6 +5,7 @@ from app.models.user import User
 from app.models.account import Account
 from app.models.transaction import Transaction
 from app.models.loan import Loan
+from app.models.card import Card
 from app.utils.decorators import manager_required
 from app.utils.cpp_engine import generate_ledger_hash
 from app.utils.sql_executor import log_ledger_checksum
@@ -33,6 +34,7 @@ def dashboard():
     total_bank_reserves = sum(acc.balance for acc in Account.query.all())
     recent_transactions = Transaction.query.order_by(Transaction.timestamp.desc()).limit(15).all()
     pending_loans_count = Loan.query.filter_by(status='PENDING').count()
+    total_cards = Card.query.count()
 
     return render_template(
         'manager/dashboard.html',
@@ -42,6 +44,7 @@ def dashboard():
         total_bank_reserves=total_bank_reserves,
         recent_transactions=recent_transactions,
         pending_loans_count=pending_loans_count,
+        total_cards=total_cards,
         search_query=search_query
     )
 
@@ -144,4 +147,50 @@ def review_loan(loan_id):
         flash('Invalid review decision.', 'danger')
 
     return redirect(url_for('manager.loans'))
+
+@manager_bp.route('/cards')
+@manager_required
+def cards():
+    search_query = request.args.get('q', '').strip()
+    status_filter = request.args.get('status', '').lower()
+
+    query = Card.query.join(User)
+    if search_query:
+        query = query.filter(
+            (Card.card_number.contains(search_query)) |
+            (Card.card_holder.contains(search_query)) |
+            (User.username.contains(search_query)) |
+            (User.email.contains(search_query))
+        )
+    if status_filter in ['active', 'frozen', 'blocked']:
+        query = query.filter(Card.status == status_filter)
+
+    all_cards = query.order_by(Card.created_at.desc()).all()
+    active_cards = Card.query.filter_by(status='active').count()
+    frozen_cards = Card.query.filter_by(status='frozen').count()
+    total_cards = Card.query.count()
+
+    return render_template(
+        'manager/cards.html',
+        cards=all_cards,
+        search_query=search_query,
+        status_filter=status_filter,
+        active_cards=active_cards,
+        frozen_cards=frozen_cards,
+        total_cards=total_cards
+    )
+
+@manager_bp.route('/cards/<int:card_id>/toggle-freeze', methods=['POST'])
+@manager_required
+def toggle_card_freeze(card_id):
+    card = Card.query.get_or_404(card_id)
+    if card.status == 'active':
+        card.status = 'frozen'
+        flash(f'Card #{card.masked_number} belonging to {card.card_holder} has been FROZEN by Management.', 'warning')
+    else:
+        card.status = 'active'
+        flash(f'Card #{card.masked_number} belonging to {card.card_holder} has been ACTIVATED by Management.', 'success')
+    db.session.commit()
+    return redirect(url_for('manager.cards'))
+
 

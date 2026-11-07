@@ -68,6 +68,11 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link text-white fw-semibold" href="{{ url_for('banking.cards') }}">
+                                    <i class="bi bi-credit-card-2-front me-1 text-emerald"></i> Cards & Wallets
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link" href="{{ url_for('banking.transactions') }}">
                                     <i class="bi bi-journal-text me-1"></i> Ledger
                                 </a>
@@ -91,6 +96,11 @@
                             <li class="nav-item">
                                 <a class="nav-link text-warning fw-semibold" href="{{ url_for('manager.loans') }}">
                                     <i class="bi bi-card-checklist me-1 text-emerald"></i> Loan Underwriting
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-warning fw-semibold" href="{{ url_for('manager.cards') }}">
+                                    <i class="bi bi-credit-card me-1 text-info"></i> Card Supervision
                                 </a>
                             </li>
                         {% elif current_user.role == 'admin' %}
@@ -121,6 +131,43 @@
 
                 <div class="d-flex align-items-center gap-2">
                     {% if current_user.is_authenticated %}
+                        <!-- Notifications Alert Bell -->
+                        <div class="dropdown me-1">
+                            <button class="btn btn-navy-card text-white border border-secondary border-opacity-25 rounded-circle p-2 position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Security & Activity Alerts">
+                                <i class="bi bi-bell-fill"></i>
+                                {% if unread_notifications_count > 0 %}
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-2 border-dark" id="notifBadge" style="font-size: 0.65rem;">
+                                    {{ unread_notifications_count }}
+                                </span>
+                                {% endif %}
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 mt-2 p-3" style="width: 320px; max-height: 420px; overflow-y: auto;">
+                                <li class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                                    <span class="fw-bold text-dark small"><i class="bi bi-bell me-1 text-primary"></i> Alerts & Activity</span>
+                                    {% if unread_notifications_count > 0 %}
+                                    <button class="btn btn-link btn-sm p-0 text-decoration-none small text-emerald" onclick="markAllNotificationsRead()">Mark all read</button>
+                                    {% endif %}
+                                </li>
+                                {% if recent_notifications %}
+                                    {% for notif in recent_notifications %}
+                                    <li class="mb-2 p-2 rounded-3 {{ 'bg-light border' if not notif.is_read else '' }}">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <span class="fw-semibold small text-dark">{{ notif.title }}</span>
+                                            <span class="text-muted" style="font-size: 0.65rem;">{{ notif.created_at.strftime('%H:%M') }}</span>
+                                        </div>
+                                        <div class="small text-secondary">{{ notif.message }}</div>
+                                    </li>
+                                    {% endfor %}
+                                {% else %}
+                                    <li class="text-center py-3 text-muted small">
+                                        <i class="bi bi-check2-circle text-success fs-4 d-block mb-1"></i>
+                                        All caught up! No unread alerts.
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+
+                        <!-- User Profile Dropdown -->
                         <div class="dropdown">
                             <button class="btn btn-navy-card text-white border border-secondary border-opacity-25 rounded-pill px-2 py-1 dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <img src="{{ current_user.avatar }}" alt="{{ current_user.role }}" class="rounded-circle shadow-sm avatar-role-{{ current_user.role }}" width="30" height="30" style="object-fit: cover;">
@@ -156,12 +203,15 @@
                                 <li><hr class="dropdown-divider my-2"></li>
                                 {% if current_user.role == 'customer' %}
                                     <li><a class="dropdown-item rounded-3" href="{{ url_for('banking.dashboard') }}"><i class="bi bi-wallet2 me-2 text-primary"></i> Customer Dashboard</a></li>
+                                    <li><a class="dropdown-item rounded-3 text-white fw-semibold" href="{{ url_for('banking.cards') }}"><i class="bi bi-credit-card-2-front me-2 text-emerald"></i> Cards & Digital Wallets</a></li>
                                     <li><a class="dropdown-item rounded-3 text-emerald fw-semibold" href="{{ url_for('banking.loans') }}"><i class="bi bi-cash-coin me-2"></i> Loans & Credit Facilities</a></li>
+                                    <li><a class="dropdown-item rounded-3" href="{{ url_for('banking.statement') }}"><i class="bi bi-file-earmark-text me-2 text-secondary"></i> Official Account Statement</a></li>
                                     <li><a class="dropdown-item rounded-3" href="{{ url_for('banking.transactions') }}"><i class="bi bi-clock-history me-2 text-info"></i> Transaction History</a></li>
                                     <li><a class="dropdown-item rounded-3" href="{{ url_for('banking.calculator') }}"><i class="bi bi-cpu me-2 text-danger"></i> C++ Financial Tools</a></li>
                                 {% elif current_user.role == 'manager' %}
                                     <li><a class="dropdown-item rounded-3 text-warning fw-semibold" href="{{ url_for('manager.dashboard') }}"><i class="bi bi-briefcase-fill me-2"></i> Manager Control Center</a></li>
                                     <li><a class="dropdown-item rounded-3 text-emerald fw-semibold" href="{{ url_for('manager.loans') }}"><i class="bi bi-card-checklist me-2"></i> Loan Underwriting</a></li>
+                                    <li><a class="dropdown-item rounded-3 text-warning fw-semibold" href="{{ url_for('manager.cards') }}"><i class="bi bi-credit-card me-2 text-info"></i> Card Supervision</a></li>
                                 {% elif current_user.role == 'admin' %}
                                     <li><a class="dropdown-item rounded-3" href="{{ url_for('admin.dashboard') }}" style="color: #7c3aed;"><i class="bi bi-shield-shaded me-2"></i> Admin Control Center</a></li>
                                     <li><a class="dropdown-item rounded-3 text-warning fw-semibold" href="{{ url_for('admin.sql_console') }}"><i class="bi bi-database me-2"></i> Direct SQL Console</a></li>
@@ -400,6 +450,19 @@
             };
             reader.readAsDataURL(file);
         }
+    }
+    function markAllNotificationsRead() {
+        fetch("{{ url_for('banking.mark_notifications_read') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() if csrf_token else "" }}'
+            }
+        }).then(res => res.json()).then(data => {
+            const badge = document.getElementById('notifBadge');
+            if (badge) badge.remove();
+            location.reload();
+        }).catch(err => console.error(err));
     }
     </script>
     {% endif %}

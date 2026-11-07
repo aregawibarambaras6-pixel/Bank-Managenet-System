@@ -8,13 +8,17 @@ from app.models.user import User
 from app.models.account import Account
 from app.models.transaction import Transaction
 from app.models.loan import Loan
+from app.models.card import Card
+from app.models.notification import Notification
 
 def seed_demo_data():
-    """Seed initial demo users, accounts, transactions, and loans."""
+    """Seed initial demo users, accounts, transactions, loans, cards, and alerts."""
     if not User.query.first():
         _seed_users_and_accounts()
 
     _seed_loans()
+    _seed_cards()
+    _seed_notifications()
 
 def _seed_users_and_accounts():
     print("[*] Seeding initial demo users and banking records...")
@@ -213,3 +217,83 @@ def _seed_loans():
         db.session.add(demo_loan2)
         db.session.commit()
         print("[OK] Demo loan applications seeded successfully.")
+
+def _seed_cards():
+    """Seed demo debit and virtual cards if none exist."""
+    if Card.query.first() is not None:
+        return
+
+    customer_user = User.query.filter_by(username='customer').first()
+    if customer_user and customer_user.accounts:
+        checking_acc = customer_user.accounts[0]
+        
+        card1 = Card(
+            card_number='4532 8910 2345 6789',
+            card_holder='ALEX MERCER',
+            user_id=customer_user.id,
+            account_id=checking_acc.id,
+            card_type='virtual',
+            card_network='Visa',
+            card_design='emerald',
+            cvv='482',
+            expiry_date='08/29',
+            status='active',
+            daily_limit=2500.00,
+            daily_spent=0.00
+        )
+        card1.set_pin('1234')
+
+        card2 = Card(
+            card_number='5421 9876 5432 1098',
+            card_holder='ALEX MERCER',
+            user_id=customer_user.id,
+            account_id=checking_acc.id,
+            card_type='physical',
+            card_network='Mastercard',
+            card_design='platinum',
+            cvv='719',
+            expiry_date='11/28',
+            status='active',
+            daily_limit=5000.00,
+            daily_spent=0.00
+        )
+        card2.set_pin('5678')
+
+        db.session.add(card1)
+        db.session.add(card2)
+        db.session.commit()
+        print("[OK] Demo payment cards seeded successfully.")
+
+def _seed_notifications():
+    """Seed demo activity notifications if none exist."""
+    if Notification.query.first() is not None:
+        return
+
+    customer_user = User.query.filter_by(username='customer').first()
+    if customer_user:
+        now = datetime.utcnow()
+        n1 = Notification(
+            user_id=customer_user.id,
+            title='Direct Deposit Received',
+            message='Payroll Direct Deposit of $4,000.00 from Tech Corp was credited to your Checking account.',
+            category='success',
+            created_at=now - timedelta(days=5)
+        )
+        n2 = Notification(
+            user_id=customer_user.id,
+            title='Auto Loan Approved',
+            message='Your Auto Loan facility (LN-83921045) for $18,000.00 has been approved and funded.',
+            category='info',
+            created_at=now - timedelta(days=2)
+        )
+        n3 = Notification(
+            user_id=customer_user.id,
+            title='Virtual Visa Card Activated',
+            message='Your Emerald Virtual Card ending in 6789 is active and ready for online spending.',
+            category='success',
+            created_at=now - timedelta(hours=3)
+        )
+        db.session.add_all([n1, n2, n3])
+        db.session.commit()
+        print("[OK] Demo notification alerts seeded successfully.")
+

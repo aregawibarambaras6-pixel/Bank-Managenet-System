@@ -1,17 +1,31 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
+import io
+import csv
+from datetime import datetime, timedelta
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, Response
 from flask_login import current_user
 from app.extensions import db
 from app.models.account import Account
 from app.models.transaction import Transaction
 from app.models.loan import Loan
+from app.models.card import Card
+from app.models.notification import Notification
 from app.forms.banking_forms import DepositForm, WithdrawForm, TransferForm, CreateAccountForm
 from app.forms.loan_forms import LoanApplicationForm, LOAN_TYPE_RATES
+from app.forms.card_forms import IssueCardForm, UpdateCardLimitForm, ChangeCardPinForm
 from app.utils.decorators import customer_required
 from app.utils.java_service import analyze_transaction_risk
 from app.utils.cpp_engine import calculate_compound_interest, calculate_loan_amortization, generate_ledger_hash
 from app.utils.sql_executor import log_fraud_audit, log_ledger_checksum
 
 banking_bp = Blueprint('banking', __name__)
+
+@banking_bp.app_context_processor
+def inject_notifications():
+    if current_user.is_authenticated:
+        unread_count = Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
+        recent_notifs = Notification.query.filter_by(user_id=current_user.id).order_by(Notification.created_at.desc()).limit(6).all()
+        return {'unread_notifications_count': unread_count, 'recent_notifications': recent_notifs}
+    return {'unread_notifications_count': 0, 'recent_notifications': []}
 
 @banking_bp.route('/dashboard')
 @customer_required
@@ -468,4 +482,297 @@ def api_loan_calculate():
         return jsonify(result)
     except Exception as e:
         return jsonify({'error': str(e)}), 400
+
+# ──────────────────────────────────────────────
+# CARDS & DIGITAL WALLET MANAGEMENT
+# ──────────────────────────────────────────────
+@banking_bp.route('/cards')
+@customer_required
+def cards():
+    user_cards = Card.query.filter_by(user_id=current_user.id).order_by(Card.created_at.desc()).all()
+    accounts = Account.query.filter_by(user_id=current_user.id, status='active').all()
+
+    active_count = sum(1 for c in user_cards if c.status == 'active')
+    frozen_count = sum(1 for c in user_cards if c.status == 'frozen')
+    total_spending_power = sum(c.daily_limit for c in user_cards if c.status == 'active')
+
+    limit_form = UpdateCardLimitForm()
+    pin_form = ChangeCardPinForm()
+
+    return render_template(
+        'banking/cards.html',
+        cards=user_cards,
+        accounts=accounts,
+        active_count=active_count,
+        frozen_count=frozen_count,
+        total_spending_power=total_spending_power,
+        limit_form=limit_form,
+        pin_form=pin_form
+    )
+
+@banking_bp.route('/cards/issue', methods=['GET', 'POST'])
+@customer_required
+def issue_card():
+    accounts = Account.query.filter_by(user_id=current_user.id, status='active').all()
+    if not accounts:
+        flash('You must have an active checking or savings account before requesting a debit card.', 'warning')
+        return redirect(url_for('banking.dashboard'))
+
+    form = IssueCardForm()
+    form.account_id.choices = [
+        (acc.id, f"Account #{acc.account_number} ({acc.account_type.title()} - Available: ${acc.balance:,.2f})")
+        for acc in accounts
+    ]
+
+    if form.validate_on_submit():
+        account_id = form.account_id.data
+        linked_account = Account.query.filter_by(id=account_id, user_id=current_user.id).first()
+        if not linked_account:
+            flash('Invalid linked account selected.', 'danger')
+            return redirect(url_for('banking.issue_card'))
+
+        network = form.card_network.data
+        card_type = form.card_type.data
+        card_design = form.card_design.data
+        daily_limit = float(form.daily_limit.data)
+        pin = form.pin.data
+
+        # Generate realistic, unique card credentials
+        card_num = Card.generate_card_number(network)
+        cvv = Card.generate_cvv()
+        expiry = Card.generate_expiry(3)
+
+        new_card = Card(
+            card_number=card_num,
+            card_holder=current_user.full_name or current_user.username.upper(),
+            user_id=current_user.id,
+            account_id=linked_account.id,
+            card_type=card_type,
+            card_network=network,
+            card_design=card_design,
+            cvv=cvv,
+            expiry_date=expiry,
+            status='active',
+            daily_limit=daily_limit,
+            daily_spent=0.00
+        )
+        new_card.set_pin(pin)
+
+        # Create system notification
+        notif = Notification(
+            user_id=current_user.id,
+            title='New Card Issued',
+            message=f'Your new {network} {card_type.title()} Card ending in {card_num[-4:]} has been activated.',
+            category='success'
+        )
+
+        db.session.add(new_card)
+        db.session.add(notif)
+        db.session.commit()
+
+        flash(f'🎉 Success! Your {network} {card_type.title()} Card ending in {card_num[-4:]} has been created and is ready for use.', 'success')
+        return redirect(url_for('banking.cards'))
+
+    return render_template('banking/issue_card.html', form=form)
+
+@banking_bp.route('/cards/<int:card_id>/toggle-freeze', methods=['POST'])
+@customer_required
+def toggle_card_freeze(card_id):
+    card = Card.query.filter_by(id=card_id, user_id=current_user.id).first_or_404()
+
+    if card.status == 'active':
+        card.status = 'frozen'
+        flash(f'❄️ Card ending in {card.card_number[-4:]} has been FROZEN. Online and POS purchases are temporarily disabled.', 'warning')
+        notif_msg = f'Card ending in {card.card_number[-4:]} was frozen by cardholder.'
+        notif_cat = 'warning'
+    else:
+        card.status = 'active'
+        flash(f'✅ Card ending in {card.card_number[-4:]} has been UNFREEZED and is fully active.', 'success')
+        notif_msg = f'Card ending in {card.card_number[-4:]} was unfrozen and activated.'
+        notif_cat = 'success'
+
+    notif = Notification(
+        user_id=current_user.id,
+        title='Card Status Updated',
+        message=notif_msg,
+        category=notif_cat
+    )
+    db.session.add(notif)
+    db.session.commit()
+    return redirect(url_for('banking.cards'))
+
+@banking_bp.route('/cards/<int:card_id>/update-limit', methods=['POST'])
+@customer_required
+def update_card_limit(card_id):
+    card = Card.query.filter_by(id=card_id, user_id=current_user.id).first_or_404()
+    form = UpdateCardLimitForm()
+
+    if form.validate_on_submit():
+        new_limit = float(form.daily_limit.data)
+        card.daily_limit = new_limit
+
+        notif = Notification(
+            user_id=current_user.id,
+            title='Card Limit Adjusted',
+            message=f'Daily spending limit for card ending in {card.card_number[-4:]} updated to ${new_limit:,.2f}.',
+            category='info'
+        )
+        db.session.add(notif)
+        db.session.commit()
+        flash(f'Daily spending limit updated to ${new_limit:,.2f}.', 'success')
+    else:
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f'Error updating limit: {error}', 'danger')
+
+    return redirect(url_for('banking.cards'))
+
+@banking_bp.route('/cards/<int:card_id>/change-pin', methods=['POST'])
+@customer_required
+def change_card_pin(card_id):
+    card = Card.query.filter_by(id=card_id, user_id=current_user.id).first_or_404()
+    form = ChangeCardPinForm()
+
+    if form.validate_on_submit():
+        if not card.check_pin(form.current_pin.data):
+            flash('Current PIN verification failed.', 'danger')
+            return redirect(url_for('banking.cards'))
+
+        card.set_pin(form.new_pin.data)
+        notif = Notification(
+            user_id=current_user.id,
+            title='Card PIN Updated',
+            message=f'Security PIN for card ending in {card.card_number[-4:]} was successfully updated.',
+            category='info'
+        )
+        db.session.add(notif)
+        db.session.commit()
+        flash('Security PIN updated successfully.', 'success')
+    else:
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f'PIN Error: {error}', 'danger')
+
+    return redirect(url_for('banking.cards'))
+
+# ──────────────────────────────────────────────
+# STATEMENT GENERATOR & CSV EXPORT
+# ──────────────────────────────────────────────
+@banking_bp.route('/transactions/export-csv')
+@customer_required
+def export_transactions_csv():
+    account_id = request.args.get('account_id', type=int)
+    user_account_ids = [acc.id for acc in current_user.accounts]
+
+    query = Transaction.query.filter(Transaction.account_id.in_(user_account_ids))
+    if account_id and account_id in user_account_ids:
+        query = query.filter_by(account_id=account_id)
+
+    transactions = query.order_by(Transaction.timestamp.desc()).all()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    # Write CSV Header
+    writer.writerow([
+        'Reference ID', 'Timestamp (UTC)', 'Account Number', 'Account Type',
+        'Operation Type', 'Description', 'Counterparty Reference',
+        'Debit / Credit Indicator', 'Transaction Amount ($)', 'Running Balance ($)'
+    ])
+
+    for t in transactions:
+        is_inflow = t.transaction_type in ['deposit', 'transfer_in']
+        debit_credit = 'CREDIT' if is_inflow else 'DEBIT'
+        writer.writerow([
+            t.reference_id,
+            t.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            t.account.account_number if t.account else '',
+            t.account.account_type.upper() if t.account else '',
+            t.transaction_type,
+            t.description or '',
+            t.related_account or '',
+            debit_credit,
+            f"{t.amount:.2f}",
+            f"{t.balance_after:.2f}"
+        ])
+
+    csv_data = output.getvalue()
+    filename = f"Apex_Bank_Statement_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
+
+    return Response(
+        csv_data,
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+@banking_bp.route('/statement')
+@customer_required
+def statement():
+    account_id = request.args.get('account_id', type=int)
+    period = request.args.get('period', '30d')
+
+    user_accounts = current_user.accounts
+    if not user_accounts:
+        flash('No bank accounts found.', 'warning')
+        return redirect(url_for('banking.dashboard'))
+
+    selected_account = None
+    if account_id:
+        selected_account = Account.query.filter_by(id=account_id, user_id=current_user.id).first()
+    if not selected_account:
+        selected_account = user_accounts[0]
+
+    now = datetime.utcnow()
+    if period == '7d':
+        start_date = now - timedelta(days=7)
+        period_label = 'Last 7 Days'
+    elif period == '30d':
+        start_date = now - timedelta(days=30)
+        period_label = 'Last 30 Days'
+    elif period == '90d':
+        start_date = now - timedelta(days=90)
+        period_label = 'Last 90 Days'
+    elif period == 'year':
+        start_date = now - timedelta(days=365)
+        period_label = 'Last 12 Months'
+    else:
+        start_date = datetime(2020, 1, 1)
+        period_label = 'Full Historical Record'
+
+    txns = Transaction.query.filter(
+        Transaction.account_id == selected_account.id,
+        Transaction.timestamp >= start_date
+    ).order_by(Transaction.timestamp.asc()).all()
+
+    total_credits = sum(t.amount for t in txns if t.transaction_type in ['deposit', 'transfer_in'])
+    total_debits = sum(t.amount for t in txns if t.transaction_type not in ['deposit', 'transfer_in'])
+    closing_balance = selected_account.balance
+
+    # Estimate opening balance
+    opening_balance = closing_balance - total_credits + total_debits
+
+    return render_template(
+        'banking/statement.html',
+        accounts=user_accounts,
+        selected_account=selected_account,
+        period=period,
+        period_label=period_label,
+        transactions=list(reversed(txns)),
+        opening_balance=opening_balance,
+        closing_balance=closing_balance,
+        total_credits=total_credits,
+        total_debits=total_debits,
+        statement_date=now
+    )
+
+# ──────────────────────────────────────────────
+# NOTIFICATIONS DISMISSAL
+# ──────────────────────────────────────────────
+@banking_bp.route('/notifications/read-all', methods=['POST'])
+@customer_required
+def mark_notifications_read():
+    Notification.query.filter_by(user_id=current_user.id, is_read=False).update({'is_read': True})
+    db.session.commit()
+    return jsonify({'status': 'success', 'message': 'All notifications marked as read'})
+
 

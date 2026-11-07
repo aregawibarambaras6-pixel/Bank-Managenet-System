@@ -32,7 +32,7 @@ def create_app(config_name='development'):
 
     # Initialize Database tables and Seed Data
     with app.app_context():
-        from app.models import User, Account, Transaction, Beneficiary, Loan
+        from app.models import User, Account, Transaction, Beneficiary, Loan, Card, Notification
         db.create_all()
         from app.seed import seed_demo_data
         seed_demo_data()

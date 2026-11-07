@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}Issue New Debit Card - Apex Bank{% endblock %}
+
+{% block content %}
+<div class="py-4 bg-light min-vh-100">
+    <div class="container">
+        <!-- Breadcrumb & Header -->
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a href="{{ url_for('banking.dashboard') }}" class="text-decoration-none">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('banking.cards') }}" class="text-decoration-none">Cards</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Issue Card</li>
+            </ol>
+        </nav>
+
+        <div class="row g-4">
+            <!-- Left: Card Customization & Issuance Form -->
+            <div class="col-lg-7">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="card-header bg-navy text-white p-4">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="badge bg-emerald-subtle text-emerald-dark px-3 py-1 rounded-pill small mb-2">
+                                    <i class="bi bi-shield-check me-1"></i> Instant Issuance
+                                </span>
+                                <h4 class="fw-bold mb-1">Issue Debit Card</h4>
+                                <p class="text-slate-300 small mb-0">Customize your card edition, security limit, and linked account.</p>
+                            </div>
+                            <div class="d-none d-sm-block text-end">
+                                <i class="bi bi-credit-card-fill fs-1 text-slate-400 opacity-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="POST" id="issueCardForm" novalidate>
+                            {{ form.hidden_tag() }}
+
+                            <!-- Linked Bank Account -->
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-secondary">
+                                    {{ form.account_id.label.text }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.account_id(class="form-select", id="accountSelect") }}
+                                <small class="text-muted">Purchases will be debited in real-time from this account.</small>
+                                {% for error in form.account_id.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <!-- Card Format -->
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold text-secondary">
+                                        {{ form.card_type.label.text }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.card_type(class="form-select", id="cardTypeSelect") }}
+                                    {% for error in form.card_type.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+
+                                <!-- Payment Network -->
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold text-secondary">
+                                        {{ form.card_network.label.text }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.card_network(class="form-select", id="cardNetworkSelect") }}
+                                    {% for error in form.card_network.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Card Design Edition -->
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-secondary">
+                                    {{ form.card_design.label.text }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.card_design(class="form-select", id="cardDesignSelect") }}
+                                <small class="text-muted">Choose your aesthetic gradient edition.</small>
+                                {% for error in form.card_design.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Daily Spending Limit -->
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-secondary">
+                                    {{ form.daily_limit.label.text }} <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light fw-bold text-muted">$</span>
+                                    {{ form.daily_limit(class="form-control form-control-lg", placeholder="2500.00", min="50", max="25000", step="50") }}
+                                </div>
+                                <small class="text-muted">You can adjust this limit anytime from your dashboard.</small>
+                                {% for error in form.daily_limit.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="row g-3 mb-4">
+                                <!-- PIN -->
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold text-secondary">
+                                        {{ form.pin.label.text }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.pin(class="form-control", placeholder="••••", maxlength="4", pattern="\\d{4}") }}
+                                    <small class="text-muted">4 digits for ATM & POS authorization</small>
+                                    {% for error in form.pin.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+
+                                <!-- Confirm PIN -->
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold text-secondary">
+                                        {{ form.confirm_pin.label.text }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.confirm_pin(class="form-control", placeholder="••••", maxlength="4", pattern="\\d{4}") }}
+                                    <small class="text-muted">Retype to confirm</small>
+                                    {% for error in form.confirm_pin.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('banking.cards') }}" class="btn btn-light rounded-pill px-4">Cancel</a>
+                                {{ form.submit(class="btn btn-emerald rounded-pill px-4 flex-grow-1 text-white fw-semibold") }}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Real-time Live Visual Card Preview -->
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm rounded-4 bg-navy text-white p-4 sticky-top" style="top: 80px;">
+                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom border-white border-opacity-10 pb-3">
+                        <span class="badge bg-emerald-subtle text-emerald-dark px-3 py-1 rounded-pill small">
+                            <i class="bi bi-eye me-1"></i> Live Card Preview
+                        </span>
+                        <span class="small text-slate-400 font-monospace" id="previewCardType">VIRTUAL</span>
+                    </div>
+
+                    <!-- Visual Card -->
+                    <div class="debit-card-visual card-theme-emerald mb-4 mx-auto" id="previewCardVisual">
+                        <div class="d-flex justify-content-between align-items-center position-relative z-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="emv-chip"></div>
+                                <i class="bi bi-wifi fs-4 opacity-75" style="transform: rotate(90deg);"></i>
+                            </div>
+                            <div class="text-end">
+                                <span class="fw-bold tracking-wider small d-block">APEX BANK</span>
+                                <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-2 py-0 small text-uppercase" id="previewBadgeType" style="font-size: 0.65rem;">
+                                    virtual
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="my-3 position-relative z-2">
+                            <div class="font-monospace fs-5 fw-bold letter-spacing-1" id="previewNumber">
+                                •••• •••• •••• 8842
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-end position-relative z-2 small">
+                            <div>
+                                <span class="text-uppercase opacity-75 d-block" style="font-size: 0.65rem;">Cardholder</span>
+                                <span class="fw-semibold text-uppercase font-monospace text-truncate d-inline-block" style="max-width: 140px;">
+                                    {{ current_user.full_name or current_user.username }}
+                                </span>
+                            </div>
+                            <div>
+                                <span class="text-uppercase opacity-75 d-block" style="font-size: 0.65rem;">Expires</span>
+                                <span class="fw-semibold font-monospace">08/29</span>
+                            </div>
+                            <div>
+                                <span class="text-uppercase opacity-75 d-block" style="font-size: 0.65rem;">CVV</span>
+                                <span class="fw-semibold font-monospace">•••</span>
+                            </div>
+                            <div class="text-end" id="previewNetworkLogo">
+                                <span class="fw-bold fs-5 fst-italic">VISA</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="vstack gap-2 small text-slate-300">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-shield-lock-fill text-emerald"></i>
+                            <span>Zero liability protection against fraudulent charges.</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-lightning-charge-fill text-warning"></i>
+                            <span>Virtual cards activate immediately upon submission.</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-phone-fill text-info"></i>
+                            <span>Add instantly to Apple Wallet or Google Wallet.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const designSelect = document.getElementById('cardDesignSelect');
+    const networkSelect = document.getElementById('cardNetworkSelect');
+    const typeSelect = document.getElementById('cardTypeSelect');
+    const visual = document.getElementById('previewCardVisual');
+    const networkLogo = document.getElementById('previewNetworkLogo');
+    const badgeType = document.getElementById('previewBadgeType');
+    const previewTypeHeader = document.getElementById('previewCardType');
+
+    function updatePreview() {
+        const theme = designSelect.value;
+        visual.className = 'debit-card-visual card-theme-' + theme + ' mb-4 mx-auto';
+
+        const network = networkSelect.value;
+        if (network.toLowerCase() === 'mastercard') {
+            networkLogo.innerHTML = '<span class="fw-bold fs-6 fst-italic text-warning">Mastercard</span>';
+        } else {
+            networkLogo.innerHTML = '<span class="fw-bold fs-5 fst-italic">VISA</span>';
+        }
+
+        const type = typeSelect.value;
+        badgeType.textContent = type;
+        previewTypeHeader.textContent = type.toUpperCase();
+    }
+
+    designSelect.addEventListener('change', updatePreview);
+    networkSelect.addEventListener('change', updatePreview);
+    typeSelect.addEventListener('change', updatePreview);
+
+    updatePreview();
+});
+</script>
+{% endblock %}

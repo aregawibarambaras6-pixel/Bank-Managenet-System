@@ -101,6 +101,39 @@ CREATE TABLE IF NOT EXISTS loans (
     FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE CASCADE
 );
 
+-- 8. Debit & Virtual Cards Table
+CREATE TABLE IF NOT EXISTS cards (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    card_number VARCHAR(19) NOT NULL UNIQUE,
+    card_holder VARCHAR(100) NOT NULL,
+    user_id INTEGER NOT NULL,
+    account_id INTEGER NOT NULL,
+    card_type VARCHAR(20) NOT NULL DEFAULT 'virtual', -- 'virtual', 'physical'
+    card_network VARCHAR(20) NOT NULL DEFAULT 'Visa', -- 'Visa', 'Mastercard'
+    card_design VARCHAR(30) NOT NULL DEFAULT 'emerald', -- 'emerald', 'navy', 'platinum', 'gold'
+    cvv VARCHAR(4) NOT NULL,
+    expiry_date VARCHAR(7) NOT NULL,
+    pin_hash VARCHAR(256) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'active', -- 'active', 'frozen', 'blocked'
+    daily_limit DECIMAL(15, 2) NOT NULL DEFAULT 2500.00,
+    daily_spent DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE CASCADE
+);
+
+-- 9. System & Security Notifications Table
+CREATE TABLE IF NOT EXISTS notifications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    title VARCHAR(120) NOT NULL,
+    message VARCHAR(255) NOT NULL,
+    category VARCHAR(20) NOT NULL DEFAULT 'info', -- 'info', 'success', 'warning', 'danger'
+    is_read BOOLEAN NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+);
+
 -- Indices for High Performance Queries
 CREATE INDEX IF NOT EXISTS idx_users_username ON users (username);
 CREATE INDEX IF NOT EXISTS idx_accounts_number ON accounts (account_number);
@@ -112,4 +145,8 @@ CREATE INDEX IF NOT EXISTS idx_fraud_ref ON fraud_audit_logs (reference_id);
 CREATE INDEX IF NOT EXISTS idx_loans_ref ON loans (loan_reference);
 CREATE INDEX IF NOT EXISTS idx_loans_user ON loans (user_id);
 CREATE INDEX IF NOT EXISTS idx_loans_status ON loans (status);
+CREATE INDEX IF NOT EXISTS idx_cards_number ON cards (card_number);
+CREATE INDEX IF NOT EXISTS idx_cards_user ON cards (user_id);
+CREATE INDEX IF NOT EXISTS idx_cards_status ON cards (status);
+CREATE INDEX IF NOT EXISTS idx_notifs_user ON notifications (user_id);
 
