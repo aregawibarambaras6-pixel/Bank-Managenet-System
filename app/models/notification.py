@@ -16,3 +16,4 @@ class Notification(db.Model):
 
     def __repr__(self):
         return f'<Notification {self.id} for User {self.user_id}: {self.title}>'
+

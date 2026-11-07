@@ -96,3 +96,4 @@ class ChangeCardPinForm(FlaskForm):
         ]
     )
     submit = SubmitField('Update PIN')
+
