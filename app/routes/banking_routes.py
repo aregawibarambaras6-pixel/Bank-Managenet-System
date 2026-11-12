@@ -9,9 +9,13 @@ from app.models.transaction import Transaction
 from app.models.loan import Loan
 from app.models.card import Card
 from app.models.notification import Notification
+from app.models.fixed_deposit import FixedDeposit
+from app.models.ticket import SupportTicket
 from app.forms.banking_forms import DepositForm, WithdrawForm, TransferForm, CreateAccountForm
 from app.forms.loan_forms import LoanApplicationForm, LOAN_TYPE_RATES
 from app.forms.card_forms import IssueCardForm, UpdateCardLimitForm, ChangeCardPinForm
+from app.forms.investment_forms import OpenDepositForm, DEPOSIT_PLANS
+from app.forms.support_forms import SupportTicketForm
 from app.utils.decorators import customer_required
 from app.utils.java_service import analyze_transaction_risk
 from app.utils.cpp_engine import calculate_compound_interest, calculate_loan_amortization, generate_ledger_hash
@@ -774,5 +778,279 @@ def mark_notifications_read():
     Notification.query.filter_by(user_id=current_user.id, is_read=False).update({'is_read': True})
     db.session.commit()
     return jsonify({'status': 'success', 'message': 'All notifications marked as read'})
+
+# ──────────────────────────────────────────────
+# FIXED DEPOSITS & TERM INVESTMENTS
+# ──────────────────────────────────────────────
+@banking_bp.route('/deposits')
+@customer_required
+def deposits():
+    user_deposits = FixedDeposit.query.filter_by(user_id=current_user.id).order_by(FixedDeposit.start_date.desc()).all()
+    accounts = Account.query.filter_by(user_id=current_user.id, status='active').all()
+
+    active_deposits = [d for d in user_deposits if d.status == 'active']
+    total_invested = sum(d.principal_amount for d in active_deposits)
+    projected_yield = sum(d.projected_interest for d in active_deposits)
+    matured_ready = sum(1 for d in active_deposits if d.is_matured)
+
+    open_form = OpenDepositForm()
+    open_form.account_id.choices = [
+        (acc.id, f"Account #{acc.account_number} ({acc.account_type.title()} - Available: ${acc.balance:,.2f})")
+        for acc in accounts
+    ]
+
+    return render_template(
+        'banking/deposits.html',
+        deposits=user_deposits,
+        accounts=accounts,
+        total_invested=total_invested,
+        projected_yield=projected_yield,
+        matured_ready=matured_ready,
+        open_form=open_form,
+        plans=DEPOSIT_PLANS
+    )
+
+@banking_bp.route('/deposits/open', methods=['POST'])
+@customer_required
+def open_deposit():
+    accounts = Account.query.filter_by(user_id=current_user.id, status='active').all()
+    form = OpenDepositForm()
+    form.account_id.choices = [(acc.id, acc.account_number) for acc in accounts]
+
+    if form.validate_on_submit():
+        account_id = form.account_id.data
+        plan_key = form.plan.data
+        amount = float(form.amount.data)
+
+        funding_account = Account.query.filter_by(id=account_id, user_id=current_user.id).first()
+        if not funding_account:
+            flash('Invalid source account selected.', 'danger')
+            return redirect(url_for('banking.deposits'))
+
+        if funding_account.balance < amount:
+            flash(f'Insufficient funds. Available balance: ${funding_account.balance:,.2f}', 'danger')
+            return redirect(url_for('banking.deposits'))
+
+        plan_info = DEPOSIT_PLANS.get(plan_key, DEPOSIT_PLANS['12m'])
+        rate = plan_info['rate']
+        months = plan_info['months']
+
+        # Execute high-precision C++ Compound Growth Calculation
+        years = months / 12.0
+        calc_result = calculate_compound_interest(amount, rate, max(1, int(round(years))), frequency=12)
+        total_interest = float(calc_result.get('total_interest', amount * (rate / 100.0) * years))
+        final_maturity = amount + total_interest
+
+        now = datetime.utcnow()
+        maturity_date = now + timedelta(days=int(months * 30.4375))
+        ref_id = FixedDeposit.generate_reference()
+
+        # Deduct principal from source account
+        funding_account.balance -= amount
+
+        # Record ledger withdrawal transaction
+        tx_ref = Transaction.generate_reference()
+        txn = Transaction(
+            reference_id=tx_ref,
+            account_id=funding_account.id,
+            transaction_type='withdrawal',
+            amount=amount,
+            balance_after=funding_account.balance,
+            description=f"Fixed Deposit Lock: {plan_info['name']} ({ref_id})",
+            related_account='APEX-TREASURY-FD'
+        )
+
+        fd = FixedDeposit(
+            deposit_reference=ref_id,
+            user_id=current_user.id,
+            account_id=funding_account.id,
+            plan_name=plan_info['name'],
+            principal_amount=amount,
+            annual_rate=rate,
+            term_months=months,
+            projected_interest=total_interest,
+            maturity_amount=final_maturity,
+            status='active',
+            start_date=now,
+            maturity_date=maturity_date
+        )
+
+        notif = Notification(
+            user_id=current_user.id,
+            title='Fixed Deposit Certificate Created',
+            message=f'Certificate {ref_id} for ${amount:,.2f} locked at {rate}% APY maturing on {maturity_date.strftime("%b %d, %Y")}.',
+            category='success'
+        )
+
+        db.session.add(txn)
+        db.session.add(fd)
+        db.session.add(notif)
+        db.session.commit()
+
+        # Ledger Checksum
+        try:
+            hash_res = generate_ledger_hash(tx_ref, funding_account.account_number, 'APEX-TREASURY-FD', amount, str(txn.timestamp))
+            log_ledger_checksum(tx_ref, hash_res.get('ledger_hash', ''))
+        except Exception:
+            pass
+
+        flash(f'🎉 Fixed Deposit ({ref_id}) successfully created! Guaranteed yield: ${total_interest:,.2f} at {rate}% APY.', 'success')
+    else:
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f'Investment Error: {error}', 'danger')
+
+    return redirect(url_for('banking.deposits'))
+
+@banking_bp.route('/deposits/<int:deposit_id>/liquidate', methods=['POST'])
+@customer_required
+def liquidate_deposit(deposit_id):
+    fd = FixedDeposit.query.filter_by(id=deposit_id, user_id=current_user.id).first_or_404()
+    if fd.status != 'active':
+        flash('This deposit certificate has already been liquidated.', 'warning')
+        return redirect(url_for('banking.deposits'))
+
+    target_account = fd.account
+    is_matured = fd.is_matured
+
+    if is_matured:
+        payout = fd.maturity_amount
+        desc = f"Maturity Payout - {fd.plan_name} ({fd.deposit_reference})"
+        status_label = 'matured'
+        flash_msg = f'🎊 Certificate {fd.deposit_reference} matured! Full principal and interest (${payout:,.2f}) credited to Account #{target_account.account_number}.'
+    else:
+        # Premature liquidation (principal returned, early interest forfeited)
+        payout = fd.principal_amount
+        desc = f"Premature Liquidation (Principal Refund) - {fd.plan_name} ({fd.deposit_reference})"
+        status_label = 'liquidated'
+        flash_msg = f'⚠️ Certificate {fd.deposit_reference} liquidated prematurely. Principal (${payout:,.2f}) returned to Account #{target_account.account_number}.'
+
+    target_account.balance += payout
+    fd.status = status_label
+    fd.liquidated_at = datetime.utcnow()
+
+    tx_ref = Transaction.generate_reference()
+    txn = Transaction(
+        reference_id=tx_ref,
+        account_id=target_account.id,
+        transaction_type='deposit',
+        amount=payout,
+        balance_after=target_account.balance,
+        description=desc,
+        related_account='APEX-TREASURY-FD'
+    )
+
+    notif = Notification(
+        user_id=current_user.id,
+        title=f'Deposit Certificate {status_label.title()}',
+        message=f'${payout:,.2f} was deposited into account #{target_account.account_number}.',
+        category='success'
+    )
+
+    db.session.add(txn)
+    db.session.add(notif)
+    db.session.commit()
+
+    flash(flash_msg, 'success')
+    return redirect(url_for('banking.deposits'))
+
+@banking_bp.route('/api/deposits/calculate', methods=['POST'])
+@customer_required
+def api_deposits_calculate():
+    data = request.get_json() or {}
+    try:
+        amount = float(data.get('amount', 5000.0))
+        plan_key = data.get('plan', '12m')
+        plan = DEPOSIT_PLANS.get(plan_key, DEPOSIT_PLANS['12m'])
+        years = plan['months'] / 12.0
+        rate = plan['rate']
+
+        result = calculate_compound_interest(amount, rate, max(1, int(round(years))), frequency=12)
+        total_interest = amount * ((1.0 + (rate / 100.0) / 12.0) ** plan['months']) - amount
+        result['total_interest'] = round(total_interest, 2)
+        result['final_balance'] = round(amount + total_interest, 2)
+        result['plan_name'] = plan['name']
+        result['rate'] = rate
+        result['term_months'] = plan['months']
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+# ──────────────────────────────────────────────
+# SUPPORT TICKETS & TRANSACTION DISPUTES
+# ──────────────────────────────────────────────
+@banking_bp.route('/support')
+@customer_required
+def support():
+    user_tickets = SupportTicket.query.filter_by(user_id=current_user.id).order_by(SupportTicket.created_at.desc()).all()
+    open_count = sum(1 for t in user_tickets if t.status in ['OPEN', 'IN_PROGRESS'])
+    resolved_count = sum(1 for t in user_tickets if t.status in ['RESOLVED', 'CLOSED'])
+
+    return render_template(
+        'banking/support.html',
+        tickets=user_tickets,
+        open_count=open_count,
+        resolved_count=resolved_count
+    )
+
+@banking_bp.route('/support/new', methods=['GET', 'POST'])
+@customer_required
+def new_ticket():
+    form = SupportTicketForm()
+    user_account_ids = [acc.id for acc in current_user.accounts]
+    recent_txns = Transaction.query.filter(Transaction.account_id.in_(user_account_ids)).order_by(Transaction.timestamp.desc()).limit(20).all()
+
+    form.transaction_id.choices = [(0, '-- None / Not a Transaction Dispute --')] + [
+        (t.id, f"{t.reference_id} (${t.amount:,.2f} - {t.description or t.transaction_type})")
+        for t in recent_txns
+    ]
+
+    # Pre-populate if query parameter passed
+    tx_ref = request.args.get('tx_ref')
+    if request.method == 'GET' and tx_ref:
+        target_tx = Transaction.query.filter_by(reference_id=tx_ref).first()
+        if target_tx and target_tx.account_id in user_account_ids:
+            form.transaction_id.data = target_tx.id
+            form.category.data = 'Transaction Dispute'
+            form.subject.data = f"Dispute on Transaction #{target_tx.reference_id}"
+            form.priority.data = 'HIGH'
+
+    if form.validate_on_submit():
+        ticket_num = SupportTicket.generate_ticket_number()
+        tx_id = form.transaction_id.data if form.transaction_id.data != 0 else None
+
+        ticket = SupportTicket(
+            ticket_number=ticket_num,
+            user_id=current_user.id,
+            transaction_id=tx_id,
+            category=form.category.data,
+            priority=form.priority.data,
+            subject=form.subject.data.strip(),
+            message=form.message.data.strip(),
+            status='OPEN'
+        )
+
+        notif = Notification(
+            user_id=current_user.id,
+            title='Support Ticket Logged',
+            message=f'Case #{ticket_num} has been assigned to branch operations.',
+            category='info'
+        )
+
+        db.session.add(ticket)
+        db.session.add(notif)
+        db.session.commit()
+
+        flash(f'🎫 Support ticket {ticket_num} submitted successfully! A Branch Specialist will review your request.', 'success')
+        return redirect(url_for('banking.support'))
+
+    return render_template('banking/new_ticket.html', form=form)
+
+@banking_bp.route('/support/ticket/<int:ticket_id>')
+@customer_required
+def view_ticket(ticket_id):
+    ticket = SupportTicket.query.filter_by(id=ticket_id, user_id=current_user.id).first_or_404()
+    return render_template('banking/view_ticket.html', ticket=ticket)
+
 
 

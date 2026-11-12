@@ -1,11 +1,16 @@
 from datetime import datetime
 from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask_login import current_user
 from app.extensions import db
 from app.models.user import User
 from app.models.account import Account
 from app.models.transaction import Transaction
 from app.models.loan import Loan
 from app.models.card import Card
+from app.models.fixed_deposit import FixedDeposit
+from app.models.ticket import SupportTicket
+from app.models.notification import Notification
+from app.forms.support_forms import ManagerTicketReplyForm
 from app.utils.decorators import manager_required
 from app.utils.cpp_engine import generate_ledger_hash
 from app.utils.sql_executor import log_ledger_checksum
@@ -35,6 +40,8 @@ def dashboard():
     recent_transactions = Transaction.query.order_by(Transaction.timestamp.desc()).limit(15).all()
     pending_loans_count = Loan.query.filter_by(status='PENDING').count()
     total_cards = Card.query.count()
+    open_tickets_count = SupportTicket.query.filter(SupportTicket.status.in_(['OPEN', 'IN_PROGRESS'])).count()
+    total_fd_volume = sum(fd.principal_amount for fd in FixedDeposit.query.filter_by(status='active').all())
 
     return render_template(
         'manager/dashboard.html',
@@ -45,6 +52,8 @@ def dashboard():
         recent_transactions=recent_transactions,
         pending_loans_count=pending_loans_count,
         total_cards=total_cards,
+        open_tickets_count=open_tickets_count,
+        total_fd_volume=total_fd_volume,
         search_query=search_query
     )
 
@@ -192,5 +201,93 @@ def toggle_card_freeze(card_id):
         flash(f'Card #{card.masked_number} belonging to {card.card_holder} has been ACTIVATED by Management.', 'success')
     db.session.commit()
     return redirect(url_for('manager.cards'))
+
+# ──────────────────────────────────────────────
+# FIXED DEPOSIT PORTFOLIO OVERSIGHT
+# ──────────────────────────────────────────────
+@manager_bp.route('/deposits')
+@manager_required
+def deposits():
+    all_deposits = FixedDeposit.query.order_by(FixedDeposit.start_date.desc()).all()
+    active_deposits = [d for d in all_deposits if d.status == 'active']
+    total_locked_capital = sum(d.principal_amount for d in active_deposits)
+    total_projected_liability = sum(d.maturity_amount for d in active_deposits)
+    matured_count = sum(1 for d in active_deposits if d.is_matured)
+
+    return render_template(
+        'manager/deposits.html',
+        deposits=all_deposits,
+        total_locked_capital=total_locked_capital,
+        total_projected_liability=total_projected_liability,
+        active_count=len(active_deposits),
+        matured_count=matured_count
+    )
+
+# ──────────────────────────────────────────────
+# SUPPORT TICKETS & DISPUTE RESOLUTION
+# ──────────────────────────────────────────────
+@manager_bp.route('/tickets')
+@manager_required
+def tickets():
+    status_filter = request.args.get('status', '').upper()
+    priority_filter = request.args.get('priority', '').upper()
+
+    query = SupportTicket.query
+    if status_filter in ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED']:
+        query = query.filter_by(status=status_filter)
+    if priority_filter in ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']:
+        query = query.filter_by(priority=priority_filter)
+
+    all_tickets = query.order_by(SupportTicket.created_at.desc()).all()
+
+    open_count = SupportTicket.query.filter_by(status='OPEN').count()
+    in_progress_count = SupportTicket.query.filter_by(status='IN_PROGRESS').count()
+    resolved_count = SupportTicket.query.filter_by(status='RESOLVED').count()
+    critical_count = SupportTicket.query.filter(SupportTicket.priority == 'CRITICAL', SupportTicket.status.in_(['OPEN', 'IN_PROGRESS'])).count()
+
+    reply_form = ManagerTicketReplyForm()
+
+    return render_template(
+        'manager/tickets.html',
+        tickets=all_tickets,
+        open_count=open_count,
+        in_progress_count=in_progress_count,
+        resolved_count=resolved_count,
+        critical_count=critical_count,
+        status_filter=status_filter,
+        priority_filter=priority_filter,
+        reply_form=reply_form
+    )
+
+@manager_bp.route('/tickets/<int:ticket_id>/reply', methods=['POST'])
+@manager_required
+def reply_ticket(ticket_id):
+    ticket = SupportTicket.query.get_or_404(ticket_id)
+    form = ManagerTicketReplyForm()
+
+    if form.validate_on_submit():
+        ticket.manager_reply = form.reply.data.strip()
+        ticket.status = form.status.data
+        ticket.assigned_manager_id = current_user.id
+        ticket.updated_at = datetime.utcnow()
+
+        notif = Notification(
+            user_id=ticket.user_id,
+            title=f'Support Ticket Update ({ticket.ticket_number})',
+            message=f'Branch Management replied to your inquiry: Status is now {ticket.status.replace("_", " ")}.',
+            category='info'
+        )
+
+        db.session.add(notif)
+        db.session.commit()
+
+        flash(f'Response sent for Ticket #{ticket.ticket_number}. Status updated to {ticket.status}.', 'success')
+    else:
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f'Reply Error: {error}', 'danger')
+
+    return redirect(url_for('manager.tickets'))
+
 
 

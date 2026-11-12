@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Submit Support Ticket / Dispute - Apex Bank{% endblock %}
+
+{% block content %}
+<div class="py-4 bg-light min-vh-100">
+    <div class="container">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a href="{{ url_for('banking.dashboard') }}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('banking.support') }}">Support</a></li>
+                <li class="breadcrumb-item active" aria-current="page">New Ticket</li>
+            </ol>
+        </nav>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+                    <div class="card-header bg-navy text-white p-4">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="badge bg-emerald-subtle text-emerald-dark px-3 py-1 rounded-pill small mb-2">
+                                    <i class="bi bi-shield-check me-1"></i> Underwriter & Support Desk
+                                </span>
+                                <h4 class="fw-bold mb-1">Create Support Ticket or Dispute</h4>
+                                <p class="text-slate-300 small mb-0">Our branch operations team reviews and responds to all cases within 24 hours.</p>
+                            </div>
+                            <div class="d-none d-sm-block text-end">
+                                <i class="bi bi-headset fs-1 text-slate-400 opacity-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="POST" novalidate>
+                            {{ form.hidden_tag() }}
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold text-secondary">
+                                        {{ form.category.label.text }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.category(class="form-select") }}
+                                    {% for error in form.category.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold text-secondary">
+                                        {{ form.priority.label.text }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.priority(class="form-select") }}
+                                    {% for error in form.priority.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-secondary">
+                                    {{ form.transaction_id.label.text }}
+                                </label>
+                                {{ form.transaction_id(class="form-select") }}
+                                <small class="text-muted">Select an item if you are disputing a specific charge or transfer from your ledger.</small>
+                                {% for error in form.transaction_id.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-secondary">
+                                    {{ form.subject.label.text }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.subject(class="form-control", placeholder="e.g. Unrecognized merchant transaction, wire transfer inquiry") }}
+                                {% for error in form.subject.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label small fw-semibold text-secondary">
+                                    {{ form.message.label.text }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.message(class="form-control", rows="5", placeholder="Please describe the issue or dispute in detail...") }}
+                                {% for error in form.message.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('banking.support') }}" class="btn btn-light rounded-pill px-4">Cancel</a>
+                                {{ form.submit(class="btn btn-emerald rounded-pill px-4 flex-grow-1 text-white fw-semibold") }}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

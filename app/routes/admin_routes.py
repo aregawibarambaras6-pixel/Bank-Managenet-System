@@ -7,6 +7,10 @@ from app.extensions import db
 from app.models.user import User
 from app.models.account import Account
 from app.models.transaction import Transaction
+from app.models.loan import Loan
+from app.models.card import Card
+from app.models.fixed_deposit import FixedDeposit
+from app.models.ticket import SupportTicket
 from app.utils.decorators import admin_required
 from app.utils.sql_executor import execute_raw_query
 
@@ -40,6 +44,11 @@ def dashboard():
     total_reserves = sum(acc.balance for acc in Account.query.all())
     master_transactions = Transaction.query.order_by(Transaction.timestamp.desc()).limit(20).all()
 
+    total_loans_count = Loan.query.count()
+    total_cards_count = Card.query.count()
+    total_fd_volume = sum(fd.principal_amount for fd in FixedDeposit.query.filter_by(status='active').all())
+    open_tickets_count = SupportTicket.query.filter(SupportTicket.status.in_(['OPEN', 'IN_PROGRESS'])).count()
+
     return render_template(
         'admin/dashboard.html',
         users=all_users,
@@ -49,6 +58,10 @@ def dashboard():
         total_admins=total_admins_count,
         total_accounts=total_accounts_count,
         total_reserves=total_reserves,
+        total_loans_count=total_loans_count,
+        total_cards_count=total_cards_count,
+        total_fd_volume=total_fd_volume,
+        open_tickets_count=open_tickets_count,
         transactions=master_transactions,
         search_query=search_query,
         role_filter=role_filter
@@ -97,3 +110,19 @@ def reset_user_password(user_id):
     db.session.commit()
     flash(f'Password for user {target_user.username} has been reset.', 'success')
     return redirect(url_for('admin.dashboard'))
+
+@admin_bp.route('/tickets')
+@admin_required
+def tickets():
+    all_tickets = SupportTicket.query.order_by(SupportTicket.created_at.desc()).all()
+    open_count = SupportTicket.query.filter_by(status='OPEN').count()
+    critical_count = SupportTicket.query.filter_by(priority='CRITICAL').count()
+
+    return render_template(
+        'admin/tickets.html',
+        tickets=all_tickets,
+        open_count=open_count,
+        critical_count=critical_count,
+        total_count=len(all_tickets)
+    )
+

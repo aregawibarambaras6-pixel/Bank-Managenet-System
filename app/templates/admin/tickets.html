@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}System-Wide Helpdesk & Dispute Compliance - System Admin{% endblock %}
+
+{% block content %}
+<div class="py-4 bg-light min-vh-100">
+    <div class="container-fluid px-lg-5">
+        <!-- Top Banner -->
+        <div class="card border-0 shadow-sm rounded-4 bg-navy text-white mb-4 overflow-hidden position-relative">
+            <div class="hero-bg-glow"></div>
+            <div class="card-body p-4 p-lg-5 position-relative z-1">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                            <span class="badge bg-purple text-white px-3 py-1 rounded-pill small" style="background-color: #7c3aed;">
+                                <i class="bi bi-shield-lock-fill me-1"></i> System Administration
+                            </span>
+                            <span class="badge bg-info-subtle text-info border border-info-subtle px-3 py-1 rounded-pill small">
+                                <i class="bi bi-clipboard2-check me-1"></i> Global Compliance & SLA
+                            </span>
+                        </div>
+                        <h2 class="h3 fw-bold mb-1">Global Customer Support & Fraud Dispute Audit</h2>
+                        <p class="text-slate-300 mb-0 small">
+                            Supervise enterprise resolution SLAs, customer disputes, and cross-branch operational compliance.
+                        </p>
+                    </div>
+                    <div>
+                        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-light rounded-pill px-4">
+                            <i class="bi bi-arrow-left me-1"></i> Admin Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metric KPI Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-3 border-start border-4 border-primary h-100 bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted small text-uppercase fw-semibold">Total Cases Logged</span>
+                            <h3 class="fw-bold text-navy-dark mb-0 mt-1">{{ total_count }}</h3>
+                            <small class="text-muted">Global lifecycle volume</small>
+                        </div>
+                        <div class="rounded-circle bg-primary-subtle p-3 text-primary">
+                            <i class="bi bi-inbox fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-3 border-start border-4 border-warning h-100 bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted small text-uppercase fw-semibold">Open Customer Cases</span>
+                            <h3 class="fw-bold text-navy-dark mb-0 mt-1">{{ open_count }}</h3>
+                            <small class="text-warning"><i class="bi bi-hourglass-split me-1"></i>Awaiting branch action</small>
+                        </div>
+                        <div class="rounded-circle bg-warning-subtle p-3 text-warning">
+                            <i class="bi bi-clock-history fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-3 border-start border-4 border-danger h-100 bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted small text-uppercase fw-semibold">Critical / Fraud Escalations</span>
+                            <h3 class="fw-bold text-danger mb-0 mt-1">{{ critical_count }}</h3>
+                            <small class="text-danger"><i class="bi bi-shield-alert me-1"></i>Priority review</small>
+                        </div>
+                        <div class="rounded-circle bg-danger-subtle p-3 text-danger">
+                            <i class="bi bi-shield-x fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Card -->
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+            <div class="card-header bg-white py-3 px-4">
+                <h5 class="fw-bold text-navy-dark mb-0">
+                    <i class="bi bi-clipboard2-data text-primary me-2"></i>Enterprise Ticket & Dispute Audit Trail
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% if tickets %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light small text-uppercase text-secondary">
+                            <tr>
+                                <th class="ps-4">Ticket</th>
+                                <th>Customer</th>
+                                <th>Category & Subject</th>
+                                <th>Priority</th>
+                                <th>Disputed Tx</th>
+                                <th>Assigned Staff</th>
+                                <th>Status</th>
+                                <th class="pe-4 text-end">Created</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for t in tickets %}
+                            <tr>
+                                <td class="ps-4">
+                                    <span class="font-monospace fw-bold text-primary">{{ t.ticket_number }}</span>
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark">{{ t.user.full_name or t.user.username }}</div>
+                                    <small class="text-muted">@{{ t.user.username }}</small>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold text-dark">{{ t.subject }}</div>
+                                    <span class="badge bg-light text-muted border" style="font-size: 0.7rem;">{{ t.category }}</span>
+                                </td>
+                                <td>
+                                    {% if t.priority == 'CRITICAL' %}
+                                        <span class="badge bg-danger rounded-pill px-2 py-1">CRITICAL</span>
+                                    {% elif t.priority == 'HIGH' %}
+                                        <span class="badge bg-warning text-dark rounded-pill px-2 py-1">HIGH</span>
+                                    {% elif t.priority == 'MEDIUM' %}
+                                        <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-1">MEDIUM</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-1">LOW</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if t.transaction %}
+                                    <span class="font-monospace small text-primary">#{{ t.transaction.reference_id }}</span>
+                                    <div class="small text-danger fw-semibold">${{ "{:,.2f}".format(t.transaction.amount) }}</div>
+                                    {% else %}
+                                    <span class="text-muted small">None</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if t.assigned_manager %}
+                                    <span class="badge bg-light text-dark border">@{{ t.assigned_manager.username }}</span>
+                                    {% else %}
+                                    <span class="text-muted small">Unassigned</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if t.status == 'RESOLVED' %}
+                                        <span class="badge bg-success rounded-pill px-3 py-1">RESOLVED</span>
+                                    {% elif t.status == 'IN_PROGRESS' %}
+                                        <span class="badge bg-warning text-dark rounded-pill px-3 py-1">IN PROGRESS</span>
+                                    {% elif t.status == 'OPEN' %}
+                                        <span class="badge bg-primary rounded-pill px-3 py-1">OPEN</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary rounded-pill px-3 py-1">CLOSED</span>
+                                    {% endif %}
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <div class="small text-dark">{{ t.created_at.strftime('%b %d, %Y') }}</div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <h5 class="fw-bold text-secondary">No tickets found</h5>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -134,6 +134,46 @@ CREATE TABLE IF NOT EXISTS notifications (
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
+-- 10. Fixed Term Deposits & Certificates Table
+CREATE TABLE IF NOT EXISTS fixed_deposits (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    deposit_reference VARCHAR(32) NOT NULL UNIQUE,
+    user_id INTEGER NOT NULL,
+    account_id INTEGER NOT NULL,
+    plan_name VARCHAR(80) NOT NULL,
+    principal_amount DECIMAL(15, 2) NOT NULL,
+    annual_rate DECIMAL(5, 2) NOT NULL,
+    term_months INTEGER NOT NULL,
+    projected_interest DECIMAL(15, 2) NOT NULL,
+    maturity_amount DECIMAL(15, 2) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'active', -- 'active', 'matured', 'liquidated'
+    start_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    maturity_date TIMESTAMP NOT NULL,
+    liquidated_at TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE CASCADE
+);
+
+-- 11. Customer Support Tickets & Dispute Center Table
+CREATE TABLE IF NOT EXISTS support_tickets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ticket_number VARCHAR(32) NOT NULL UNIQUE,
+    user_id INTEGER NOT NULL,
+    transaction_id INTEGER,
+    subject VARCHAR(150) NOT NULL,
+    category VARCHAR(50) NOT NULL DEFAULT 'INQUIRY', -- 'GENERAL', 'TRANSACTION_DISPUTE', 'CARD_ISSUE', 'LOAN_INQUIRY', 'FRAUD_ALERT', 'ACCOUNT_ACCESS'
+    priority VARCHAR(20) NOT NULL DEFAULT 'MEDIUM', -- 'LOW', 'MEDIUM', 'HIGH', 'URGENT'
+    status VARCHAR(20) NOT NULL DEFAULT 'OPEN', -- 'OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'
+    message TEXT NOT NULL,
+    manager_reply TEXT,
+    assigned_manager_id INTEGER,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (transaction_id) REFERENCES transactions (id) ON DELETE SET NULL,
+    FOREIGN KEY (assigned_manager_id) REFERENCES users (id) ON DELETE SET NULL
+);
+
 -- Indices for High Performance Queries
 CREATE INDEX IF NOT EXISTS idx_users_username ON users (username);
 CREATE INDEX IF NOT EXISTS idx_accounts_number ON accounts (account_number);
@@ -149,4 +189,10 @@ CREATE INDEX IF NOT EXISTS idx_cards_number ON cards (card_number);
 CREATE INDEX IF NOT EXISTS idx_cards_user ON cards (user_id);
 CREATE INDEX IF NOT EXISTS idx_cards_status ON cards (status);
 CREATE INDEX IF NOT EXISTS idx_notifs_user ON notifications (user_id);
+CREATE INDEX IF NOT EXISTS idx_fd_reference ON fixed_deposits (deposit_reference);
+CREATE INDEX IF NOT EXISTS idx_fd_user ON fixed_deposits (user_id);
+CREATE INDEX IF NOT EXISTS idx_fd_status ON fixed_deposits (status);
+CREATE INDEX IF NOT EXISTS idx_tickets_number ON support_tickets (ticket_number);
+CREATE INDEX IF NOT EXISTS idx_tickets_user ON support_tickets (user_id);
+CREATE INDEX IF NOT EXISTS idx_tickets_status ON support_tickets (status);
 

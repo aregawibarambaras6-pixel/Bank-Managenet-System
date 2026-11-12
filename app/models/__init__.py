@@ -5,5 +5,10 @@ from app.models.beneficiary import Beneficiary
 from app.models.loan import Loan
 from app.models.card import Card
 from app.models.notification import Notification
+from app.models.fixed_deposit import FixedDeposit
+from app.models.ticket import SupportTicket
 
-__all__ = ['User', 'Account', 'Transaction', 'Beneficiary', 'Loan', 'Card', 'Notification']
+__all__ = [
+    'User', 'Account', 'Transaction', 'Beneficiary', 'Loan',
+    'Card', 'Notification', 'FixedDeposit', 'SupportTicket'
+]

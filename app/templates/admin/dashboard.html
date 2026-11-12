@@ -98,6 +98,67 @@
             </div>
         </div>
 
+        <!-- Institutional Banking Holdings & Operation Metrics -->
+        <div class="row g-3 mb-4">
+            <div class="col-lg-3 col-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-3 rounded-3 bg-info-subtle text-info">
+                            <i class="bi bi-safe-fill fs-4"></i>
+                        </div>
+                        <div>
+                            <span class="text-muted small text-uppercase">Liquid Reserves</span>
+                            <h4 class="fw-bold text-navy-dark mb-0">${{ "{:,.2f}".format(total_reserves) }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-3 rounded-3 bg-primary-subtle text-primary">
+                            <i class="bi bi-piggy-bank-fill fs-4"></i>
+                        </div>
+                        <div>
+                            <span class="text-muted small text-uppercase">Term Deposits</span>
+                            <h4 class="fw-bold text-navy-dark mb-0">${{ "{:,.2f}".format(total_fd_volume) }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-3 rounded-3 bg-warning-subtle text-warning">
+                            <i class="bi bi-cash-stack fs-4"></i>
+                        </div>
+                        <div>
+                            <span class="text-muted small text-uppercase">Loans / Cards</span>
+                            <h4 class="fw-bold text-navy-dark mb-0">{{ total_loans_count }} / {{ total_cards_count }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                    <div class="d-flex align-items-center justify-content-between w-100">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="p-3 rounded-3 bg-danger-subtle text-danger">
+                                <i class="bi bi-chat-left-dots-fill fs-4"></i>
+                            </div>
+                            <div>
+                                <span class="text-muted small text-uppercase">Open Inquiries</span>
+                                <h4 class="fw-bold text-navy-dark mb-0">{{ open_tickets_count }}</h4>
+                            </div>
+                        </div>
+                        <a href="{{ url_for('admin.tickets') }}" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1 small" title="Audit Support Desk">
+                            Audit &rarr;
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- User Role Management Table -->
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
             <div class="card-header bg-white p-4 border-bottom">

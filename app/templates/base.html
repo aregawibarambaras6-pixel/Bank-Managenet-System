@@ -73,6 +73,11 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link text-white fw-semibold" href="{{ url_for('banking.deposits') }}">
+                                    <i class="bi bi-safe me-1 text-warning"></i> Fixed Deposits
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link" href="{{ url_for('banking.transactions') }}">
                                     <i class="bi bi-journal-text me-1"></i> Ledger
                                 </a>
@@ -83,24 +88,39 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('banking.support') }}">
+                                    <i class="bi bi-headset me-1 text-info"></i> Support
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link text-info fw-semibold" href="{{ url_for('banking.calculator') }}">
-                                    <i class="bi bi-cpu me-1 text-danger"></i> C++ Financial Tools
+                                    <i class="bi bi-cpu me-1 text-danger"></i> C++ Tools
                                 </a>
                             </li>
                         {% elif current_user.role == 'manager' %}
                             <li class="nav-item">
                                 <a class="nav-link text-warning fw-semibold" href="{{ url_for('manager.dashboard') }}">
-                                    <i class="bi bi-speedometer2 me-1"></i> Manager Operations Portal
+                                    <i class="bi bi-speedometer2 me-1"></i> Manager Portal
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link text-warning fw-semibold" href="{{ url_for('manager.loans') }}">
-                                    <i class="bi bi-card-checklist me-1 text-emerald"></i> Loan Underwriting
+                                    <i class="bi bi-card-checklist me-1 text-emerald"></i> Loans
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link text-warning fw-semibold" href="{{ url_for('manager.cards') }}">
-                                    <i class="bi bi-credit-card me-1 text-info"></i> Card Supervision
+                                    <i class="bi bi-credit-card me-1 text-info"></i> Cards
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-warning fw-semibold" href="{{ url_for('manager.deposits') }}">
+                                    <i class="bi bi-safe me-1 text-success"></i> Deposits
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-warning fw-semibold" href="{{ url_for('manager.tickets') }}">
+                                    <i class="bi bi-headset me-1 text-danger"></i> Support Desk
                                 </a>
                             </li>
                         {% elif current_user.role == 'admin' %}
@@ -111,7 +131,12 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link text-warning fw-semibold" href="{{ url_for('admin.sql_console') }}">
-                                    <i class="bi bi-database me-1"></i> Direct SQL Console
+                                    <i class="bi bi-database me-1"></i> SQL Console
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-info fw-semibold" href="{{ url_for('admin.tickets') }}">
+                                    <i class="bi bi-shield-check me-1"></i> Compliance & Disputes
                                 </a>
                             </li>
                         {% endif %}
@@ -204,7 +229,9 @@
                                 {% if current_user.role == 'customer' %}
                                     <li><a class="dropdown-item rounded-3" href="{{ url_for('banking.dashboard') }}"><i class="bi bi-wallet2 me-2 text-primary"></i> Customer Dashboard</a></li>
                                     <li><a class="dropdown-item rounded-3 text-white fw-semibold" href="{{ url_for('banking.cards') }}"><i class="bi bi-credit-card-2-front me-2 text-emerald"></i> Cards & Digital Wallets</a></li>
+                                    <li><a class="dropdown-item rounded-3 text-warning fw-semibold" href="{{ url_for('banking.deposits') }}"><i class="bi bi-safe me-2"></i> Fixed Deposits & CDs</a></li>
                                     <li><a class="dropdown-item rounded-3 text-emerald fw-semibold" href="{{ url_for('banking.loans') }}"><i class="bi bi-cash-coin me-2"></i> Loans & Credit Facilities</a></li>
+                                    <li><a class="dropdown-item rounded-3" href="{{ url_for('banking.support') }}"><i class="bi bi-headset me-2 text-info"></i> Support & Disputes</a></li>
                                     <li><a class="dropdown-item rounded-3" href="{{ url_for('banking.statement') }}"><i class="bi bi-file-earmark-text me-2 text-secondary"></i> Official Account Statement</a></li>
                                     <li><a class="dropdown-item rounded-3" href="{{ url_for('banking.transactions') }}"><i class="bi bi-clock-history me-2 text-info"></i> Transaction History</a></li>
                                     <li><a class="dropdown-item rounded-3" href="{{ url_for('banking.calculator') }}"><i class="bi bi-cpu me-2 text-danger"></i> C++ Financial Tools</a></li>
@@ -212,9 +239,12 @@
                                     <li><a class="dropdown-item rounded-3 text-warning fw-semibold" href="{{ url_for('manager.dashboard') }}"><i class="bi bi-briefcase-fill me-2"></i> Manager Control Center</a></li>
                                     <li><a class="dropdown-item rounded-3 text-emerald fw-semibold" href="{{ url_for('manager.loans') }}"><i class="bi bi-card-checklist me-2"></i> Loan Underwriting</a></li>
                                     <li><a class="dropdown-item rounded-3 text-warning fw-semibold" href="{{ url_for('manager.cards') }}"><i class="bi bi-credit-card me-2 text-info"></i> Card Supervision</a></li>
+                                    <li><a class="dropdown-item rounded-3 text-success fw-semibold" href="{{ url_for('manager.deposits') }}"><i class="bi bi-safe me-2"></i> Fixed Deposits</a></li>
+                                    <li><a class="dropdown-item rounded-3 text-info fw-semibold" href="{{ url_for('manager.tickets') }}"><i class="bi bi-headset me-2"></i> Support & Dispute Desk</a></li>
                                 {% elif current_user.role == 'admin' %}
                                     <li><a class="dropdown-item rounded-3" href="{{ url_for('admin.dashboard') }}" style="color: #7c3aed;"><i class="bi bi-shield-shaded me-2"></i> Admin Control Center</a></li>
                                     <li><a class="dropdown-item rounded-3 text-warning fw-semibold" href="{{ url_for('admin.sql_console') }}"><i class="bi bi-database me-2"></i> Direct SQL Console</a></li>
+                                    <li><a class="dropdown-item rounded-3 text-info fw-semibold" href="{{ url_for('admin.tickets') }}"><i class="bi bi-shield-check me-2"></i> Support & Dispute Audit</a></li>
                                 {% endif %}
                                 <li><hr class="dropdown-divider my-2"></li>
                                 <li><a class="dropdown-item rounded-3 text-danger" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-2"></i> Sign Out</a></li>

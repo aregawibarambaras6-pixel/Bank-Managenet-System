@@ -10,15 +10,19 @@ from app.models.transaction import Transaction
 from app.models.loan import Loan
 from app.models.card import Card
 from app.models.notification import Notification
+from app.models.fixed_deposit import FixedDeposit
+from app.models.ticket import SupportTicket
 
 def seed_demo_data():
-    """Seed initial demo users, accounts, transactions, loans, cards, and alerts."""
+    """Seed initial demo users, accounts, transactions, loans, cards, deposits, and tickets."""
     if not User.query.first():
         _seed_users_and_accounts()
 
     _seed_loans()
     _seed_cards()
     _seed_notifications()
+    _seed_fixed_deposits()
+    _seed_support_tickets()
 
 def _seed_users_and_accounts():
     print("[*] Seeding initial demo users and banking records...")
@@ -296,4 +300,93 @@ def _seed_notifications():
         db.session.add_all([n1, n2, n3])
         db.session.commit()
         print("[OK] Demo notification alerts seeded successfully.")
+
+def _seed_fixed_deposits():
+    """Seed demo fixed deposits if none exist."""
+    if FixedDeposit.query.first() is not None:
+        return
+
+    customer_user = User.query.filter_by(username='customer').first()
+    if customer_user and customer_user.accounts:
+        savings_acc = next((a for a in customer_user.accounts if a.account_type == 'savings'), customer_user.accounts[0])
+        now = datetime.utcnow()
+
+        fd1 = FixedDeposit(
+            deposit_reference='FD-84920173',
+            user_id=customer_user.id,
+            account_id=savings_acc.id,
+            plan_name='12-Month High Yield Certificate',
+            principal_amount=5000.00,
+            annual_rate=5.75,
+            term_months=12,
+            projected_interest=287.50,
+            maturity_amount=5287.50,
+            status='active',
+            start_date=now - timedelta(days=60),
+            maturity_date=now + timedelta(days=305)
+        )
+
+        fd2 = FixedDeposit(
+            deposit_reference='FD-39108426',
+            user_id=customer_user.id,
+            account_id=savings_acc.id,
+            plan_name='6-Month Growth Builder',
+            principal_amount=2500.00,
+            annual_rate=5.10,
+            term_months=6,
+            projected_interest=63.75,
+            maturity_amount=2563.75,
+            status='active',
+            start_date=now - timedelta(days=30),
+            maturity_date=now + timedelta(days=150)
+        )
+
+        db.session.add_all([fd1, fd2])
+        db.session.commit()
+        print("[OK] Demo fixed deposits seeded successfully.")
+
+def _seed_support_tickets():
+    """Seed demo customer support cases and dispute inquiries if none exist."""
+    if SupportTicket.query.first() is not None:
+        return
+
+    customer_user = User.query.filter_by(username='customer').first()
+    manager_user = User.query.filter_by(role='manager').first()
+    first_txn = Transaction.query.first()
+
+    if customer_user:
+        now = datetime.utcnow()
+        t1 = SupportTicket(
+            ticket_number='TCK-84291',
+            user_id=customer_user.id,
+            transaction_id=first_txn.id if first_txn else None,
+            subject='Inquiry regarding pending merchant hold',
+            category='TRANSACTION_DISPUTE',
+            priority='HIGH',
+            status='IN_PROGRESS',
+            message='I noticed a pending authorization hold on my debit card that was already completed via direct invoice. Could you please confirm if this hold will release automatically?',
+            manager_reply='Hello Alex, we have contacted card merchant settlements. The temporary pre-authorization hold will auto-expire within 24 business hours without impacting your cleared balance.',
+            assigned_manager_id=manager_user.id if manager_user else None,
+            created_at=now - timedelta(days=2),
+            updated_at=now - timedelta(hours=6)
+        )
+
+        t2 = SupportTicket(
+            ticket_number='TCK-39104',
+            user_id=customer_user.id,
+            transaction_id=None,
+            subject='Fixed deposit compound rate locks',
+            category='GENERAL',
+            priority='MEDIUM',
+            status='RESOLVED',
+            message='Are the fixed deposit yields guaranteed for the entire multi-year duration regardless of central bank interest rate changes?',
+            manager_reply='Yes, all Apex Term Certificates lock in your fixed APY interest rate at inception. Your returns are completely protected against market fluctuations.',
+            assigned_manager_id=manager_user.id if manager_user else None,
+            created_at=now - timedelta(days=5),
+            updated_at=now - timedelta(days=3)
+        )
+
+        db.session.add_all([t1, t2])
+        db.session.commit()
+        print("[OK] Demo support tickets seeded successfully.")
 

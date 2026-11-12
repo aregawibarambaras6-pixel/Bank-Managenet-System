@@ -34,6 +34,8 @@ A modern, secure, and full-featured **Bank Management System** built with **Flas
 ### 👤 Customer Portal
 - **Multi-Account Dashboard**: Real-time overview of active checking and high-yield savings accounts with balances and status.
 - **Account Numbering**: Standard 13-digit account numbers (e.g., `1000XXXXXXXXX`).
+- **Fixed Term Deposits & Certificates (CDs)**: Book high-yield term investments across 5 APY tiers (4.8% to 7.8% APY for 3 to 36 months) with real-time C++ compound interest calculations, projected maturity returns, and instant early or maturity liquidation payouts.
+- **Customer Support & Dispute Center**: Submit categorized customer support tickets, link disputed ledger transactions with reference numbers, track investigation status in real time, and review official managerial resolutions.
 - **Debit & Virtual Card Management**: Issue instant Visa or Mastercard virtual cards and physical debit cards in four luxury editions (Emerald, Navy, Platinum, Gold). Features one-click freeze/unfreeze, daily spending ceiling controls, PIN management, and masked card security.
 - **Official Account Statements & CSV Export**: Generate print-ready official bank statements with opening/closing balances and letterhead, or download itemized ledger data as structured CSV spreadsheets.
 - **Real-Time Notification Alerts**: Navbar notification bell with live counters for transaction confirmations, card status changes, and loan approvals.
@@ -63,6 +65,8 @@ A modern, secure, and full-featured **Bank Management System** built with **Flas
 
 ### 👔 Branch Manager Portal
 - Comprehensive overview of all branch customer accounts.
+- **Fixed Deposit Portfolio Registry**: View, track, and monitor all branch term certificates, maturity dates, interest commitments, and active deposit volume.
+- **Support & Dispute Resolution Desk**: Operational ticket queue with real-time status transitions (In Progress, Resolved, Closed), transaction-linked case audits, and official manager communication threads.
 - **Card Portfolio Supervision**: Search, audit, and remotely freeze/unfreeze any customer debit or virtual card.
 - **Loan Underwriting & Credit Review**: Review pending customer loan applications, evaluate debt-to-income (DTI) metrics, and approve/reject requests with automated account crediting and ledger audit trail generation.
 - Audit live transactions across all customer accounts.
@@ -70,6 +74,8 @@ A modern, secure, and full-featured **Bank Management System** built with **Flas
 
 ### 🛡️ System Administrator Portal
 - System-wide user administration (create, update, manage customers, managers, and admins).
+- **Enterprise Dispute & Support Audit**: Full institutional oversight of customer inquiries, transaction dispute filings, and operational response logs across all branches.
+- **Institutional Balance Sheet & Operational Metrics**: Real-time aggregated liquid reserves, active term deposit volume, credit facilities, card issuance metrics, and open inquiry counters.
 - Global transaction auditing and security event monitoring.
 - High-level platform metrics: total liquidity, transaction volume, active accounts, and user growth.
 
@@ -122,7 +128,12 @@ Bank-Management-System/
 │   │   ├── user.py           # User model (Customer, Manager, Admin)
 │   │   ├── account.py        # Checking and Savings bank accounts
 │   │   ├── transaction.py    # Ledger entries and transaction tracking
-│   │   └── beneficiary.py    # Saved payee directory
+│   │   ├── beneficiary.py    # Saved payee directory
+│   │   ├── loan.py           # Loans & amortized credit facilities
+│   │   ├── card.py           # Debit & virtual payment cards
+│   │   ├── fixed_deposit.py  # Fixed term deposits & certificates (CDs)
+│   │   ├── ticket.py         # Support cases & dispute resolution
+│   │   └── notification.py   # System security notifications & alerts
 │   ├── routes/               # Modular Flask blueprints
 │   │   ├── main_routes.py    # Public landing page and information
 │   │   ├── auth_routes.py    # Login, registration, and logout
