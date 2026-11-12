@@ -66,3 +66,4 @@ class ManagerTicketReplyForm(FlaskForm):
         ]
     )
     submit = SubmitField('Send Response & Update')
+

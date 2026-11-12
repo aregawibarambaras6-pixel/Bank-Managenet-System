@@ -35,3 +35,4 @@ class SupportTicket(db.Model):
 
     def __repr__(self):
         return f'<SupportTicket {self.ticket_number} [{self.category}] - {self.status}>'
+

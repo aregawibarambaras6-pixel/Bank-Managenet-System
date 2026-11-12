@@ -36,3 +36,4 @@ class OpenDepositForm(FlaskForm):
         ]
     )
     submit = SubmitField('Lock & Open Deposit')
+
