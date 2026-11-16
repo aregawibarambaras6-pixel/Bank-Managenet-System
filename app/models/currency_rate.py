@@ -25,3 +25,4 @@ class CurrencyRate(db.Model):
 
     def __repr__(self):
         return f'<CurrencyRate {self.currency_code} = {self.rate_to_usd} USD (Spread: {self.spread_pct}%)>'
+

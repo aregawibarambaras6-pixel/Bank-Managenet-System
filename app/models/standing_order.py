@@ -55,3 +55,4 @@ class StandingOrder(db.Model):
 
     def __repr__(self):
         return f'<StandingOrder {self.order_reference} [{self.title}] ${self.amount:,.2f} ({self.frequency}) - {self.status}>'
+

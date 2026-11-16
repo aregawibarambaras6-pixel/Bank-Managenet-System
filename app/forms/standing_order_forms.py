@@ -52,3 +52,4 @@ class StandingOrderForm(FlaskForm):
         validators=[DataRequired()]
     )
     submit = SubmitField('Activate Standing Order')
+

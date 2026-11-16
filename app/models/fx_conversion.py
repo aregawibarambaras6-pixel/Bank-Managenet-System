@@ -34,3 +34,4 @@ class FXConversion(db.Model):
 
     def __repr__(self):
         return f'<FXConversion {self.reference_id}: {self.from_amount} {self.from_currency} -> {self.to_amount} {self.to_currency} @ {self.exchange_rate}>'
+

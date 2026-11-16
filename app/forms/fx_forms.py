@@ -39,3 +39,4 @@ class AdminFXRateUpdateForm(FlaskForm):
         ]
     )
     submit = SubmitField('Save Exchange Rate')
+
