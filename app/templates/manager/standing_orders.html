@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Standing Orders Supervision Desk - Apex Bank{% endblock %}
+
+{% block content %}
+<div class="py-4 bg-light min-vh-100">
+    <div class="container">
+        <!-- Top Banner -->
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1 small">
+                        <li class="breadcrumb-item"><a href="{{ url_for('manager.dashboard') }}" class="text-decoration-none">Manager Portal</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Standing Orders Supervision</li>
+                    </ol>
+                </nav>
+                <h2 class="h3 fw-bold text-navy-dark mb-0">
+                    <i class="bi bi-clock-history text-primary me-2"></i>Branch Recurring Mandates Supervision Desk
+                </h2>
+                <p class="text-muted small mb-0">Monitor scheduled automated customer debits, recurring wire mandates, and execution health.</p>
+            </div>
+            <div>
+                <a href="{{ url_for('manager.dashboard') }}" class="btn btn-outline-secondary rounded-pill px-3">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3 col-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 border-start border-4 border-success h-100 bg-white">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-3 rounded-3 bg-success-subtle text-success">
+                            <i class="bi bi-play-circle-fill fs-4"></i>
+                        </div>
+                        <div>
+                            <span class="text-muted small text-uppercase">Active Mandates</span>
+                            <h4 class="fw-bold text-navy-dark mb-0">{{ active_count }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 border-start border-4 border-warning h-100 bg-white">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-3 rounded-3 bg-warning-subtle text-warning">
+                            <i class="bi bi-pause-circle-fill fs-4"></i>
+                        </div>
+                        <div>
+                            <span class="text-muted small text-uppercase">Paused</span>
+                            <h4 class="fw-bold text-navy-dark mb-0">{{ paused_count }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 border-start border-4 border-secondary h-100 bg-white">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-3 rounded-3 bg-secondary-subtle text-secondary">
+                            <i class="bi bi-x-circle-fill fs-4"></i>
+                        </div>
+                        <div>
+                            <span class="text-muted small text-uppercase">Cancelled</span>
+                            <h4 class="fw-bold text-navy-dark mb-0">{{ cancelled_count }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 border-start border-4 border-primary h-100 bg-white">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-3 rounded-3 bg-primary-subtle text-primary">
+                            <i class="bi bi-cash-stack fs-4"></i>
+                        </div>
+                        <div>
+                            <span class="text-muted small text-uppercase">Active Monthly Volume</span>
+                            <h4 class="fw-bold text-navy-dark mb-0">${{ "{:,.2f}".format(total_active_volume) }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Bar & Mandates Table -->
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-5">
+            <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h5 class="fw-bold text-navy-dark mb-0">
+                    <i class="bi bi-card-checklist text-emerald me-2"></i>Customer Standing Orders Queue ({{ orders|length }})
+                </h5>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('manager.standing_orders') }}" class="btn btn-sm {{ 'btn-navy text-white' if not status_filter else 'btn-outline-secondary' }} rounded-pill px-3">
+                        All Mandates
+                    </a>
+                    <a href="{{ url_for('manager.standing_orders', status='ACTIVE') }}" class="btn btn-sm {{ 'btn-success' if status_filter == 'ACTIVE' else 'btn-outline-success' }} rounded-pill px-3">
+                        Active
+                    </a>
+                    <a href="{{ url_for('manager.standing_orders', status='PAUSED') }}" class="btn btn-sm {{ 'btn-warning text-dark' if status_filter == 'PAUSED' else 'btn-outline-warning' }} rounded-pill px-3">
+                        Paused
+                    </a>
+                    <a href="{{ url_for('manager.standing_orders', status='CANCELLED') }}" class="btn btn-sm {{ 'btn-secondary text-white' if status_filter == 'CANCELLED' else 'btn-outline-secondary' }} rounded-pill px-3">
+                        Cancelled
+                    </a>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light small text-uppercase text-secondary">
+                        <tr>
+                            <th class="ps-4">Reference</th>
+                            <th>Account Holder</th>
+                            <th>Mandate Purpose</th>
+                            <th>Source Account</th>
+                            <th>Payee Destination</th>
+                            <th>Debit Amount</th>
+                            <th>Next Execution</th>
+                            <th class="pe-4 text-end">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if orders %}
+                            {% for so in orders %}
+                            <tr>
+                                <td class="ps-4 font-monospace text-primary fw-bold small">
+                                    {{ so.order_reference }}
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-navy-dark">{{ so.user.full_name or so.user.username }}</div>
+                                    <small class="text-muted font-monospace">UID: #{{ so.user_id }}</small>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold text-dark">{{ so.title }}</div>
+                                    <span class="badge bg-light text-dark border small">{{ so.destination_type|replace('_', ' ')|title }}</span>
+                                </td>
+                                <td>
+                                    <span class="font-monospace small text-muted">
+                                        {{ so.source_account.currency }} #{{ so.source_account.account_number[-4:] }}
+                                    </span>
+                                </td>
+                                <td class="font-monospace small text-muted">
+                                    {{ so.destination_account }}
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-emerald">{{ so.source_account.symbol }}{{ "{:,.2f}".format(so.amount) }}</div>
+                                    <small class="text-muted">{{ so.frequency }}</small>
+                                </td>
+                                <td>
+                                    <div class="small fw-semibold text-dark">{{ so.next_execution_date.strftime('%b %d, %Y') }}</div>
+                                    <small class="text-muted">{{ so.total_executions }} run(s)</small>
+                                </td>
+                                <td class="pe-4 text-end">
+                                    {% if so.status == 'ACTIVE' %}
+                                        <span class="badge bg-success text-white rounded-pill px-3 py-1">ACTIVE</span>
+                                    {% elif so.status == 'PAUSED' %}
+                                        <span class="badge bg-warning text-dark rounded-pill px-3 py-1">PAUSED</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary text-white rounded-pill px-3 py-1">{{ so.status }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center py-4 text-muted">
+                                    <i class="bi bi-info-circle me-1"></i> No standing orders match the selected filter.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

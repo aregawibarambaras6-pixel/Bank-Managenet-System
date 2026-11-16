@@ -35,8 +35,17 @@ class CreateAccountForm(FlaskForm):
         ('checking', 'Standard Checking Account'),
         ('savings', 'High-Yield Savings Account')
     ], default='checking')
-    initial_deposit = DecimalField('Starting Balance ($)', validators=[
+    currency = SelectField('Account Base Currency', choices=[
+        ('USD', 'USD - US Dollar ($)'),
+        ('EUR', 'EUR - Euro (€)'),
+        ('GBP', 'GBP - British Pound (£)'),
+        ('JPY', 'JPY - Japanese Yen (¥)'),
+        ('CAD', 'CAD - Canadian Dollar (CA$)'),
+        ('AUD', 'AUD - Australian Dollar (A$)'),
+        ('CHF', 'CHF - Swiss Franc (CHF)')
+    ], default='USD')
+    initial_deposit = DecimalField('Starting Balance', validators=[
         DataRequired(),
-        NumberRange(min=25.0, max=100000.0, message='Minimum initial deposit is $25.00')
+        NumberRange(min=25.0, max=100000.0, message='Minimum initial deposit is 25.00')
     ], default=100.0)
     submit = SubmitField('Open New Account')

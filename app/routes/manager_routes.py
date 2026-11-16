@@ -10,6 +10,9 @@ from app.models.card import Card
 from app.models.fixed_deposit import FixedDeposit
 from app.models.ticket import SupportTicket
 from app.models.notification import Notification
+from app.models.currency_rate import CurrencyRate
+from app.models.standing_order import StandingOrder
+from app.models.fx_conversion import FXConversion
 from app.forms.support_forms import ManagerTicketReplyForm
 from app.utils.decorators import manager_required
 from app.utils.cpp_engine import generate_ledger_hash
@@ -42,6 +45,8 @@ def dashboard():
     total_cards = Card.query.count()
     open_tickets_count = SupportTicket.query.filter(SupportTicket.status.in_(['OPEN', 'IN_PROGRESS'])).count()
     total_fd_volume = sum(fd.principal_amount for fd in FixedDeposit.query.filter_by(status='active').all())
+    total_standing_orders = StandingOrder.query.filter_by(status='ACTIVE').count()
+    total_fx_count = FXConversion.query.count()
 
     return render_template(
         'manager/dashboard.html',
@@ -54,6 +59,8 @@ def dashboard():
         total_cards=total_cards,
         open_tickets_count=open_tickets_count,
         total_fd_volume=total_fd_volume,
+        total_standing_orders=total_standing_orders,
+        total_fx_count=total_fx_count,
         search_query=search_query
     )
 
@@ -288,6 +295,80 @@ def reply_ticket(ticket_id):
                 flash(f'Reply Error: {error}', 'danger')
 
     return redirect(url_for('manager.tickets'))
+
+
+@manager_bp.route('/fx-treasury')
+@manager_required
+def fx_treasury():
+    rates = CurrencyRate.query.filter_by(is_active=True).all()
+    rate_dict = {r.currency_code: r for r in rates}
+
+    all_accounts = Account.query.all()
+    currency_holdings = {}
+    for acc in all_accounts:
+        c = acc.currency.upper()
+        if c not in currency_holdings:
+            r_obj = rate_dict.get(c)
+            currency_holdings[c] = {
+                'currency': c,
+                'symbol': acc.symbol,
+                'total_balance': 0.0,
+                'account_count': 0,
+                'rate_to_usd': r_obj.rate_to_usd if r_obj else 1.0,
+                'spread_pct': r_obj.spread_pct if r_obj else 0.8
+            }
+        currency_holdings[c]['total_balance'] += acc.balance
+        currency_holdings[c]['account_count'] += 1
+
+    total_fx_reserve_usd = 0.0
+    for c, data in currency_holdings.items():
+        usd_equiv = data['total_balance'] * data['rate_to_usd']
+        data['usd_equivalent'] = usd_equiv
+        total_fx_reserve_usd += usd_equiv
+
+    for c, data in currency_holdings.items():
+        data['portfolio_weight'] = (data['usd_equivalent'] / total_fx_reserve_usd * 100.0) if total_fx_reserve_usd > 0 else 0.0
+
+    recent_conversions = FXConversion.query.order_by(FXConversion.created_at.desc()).limit(30).all()
+    total_conversions_volume_usd = sum(
+        fx.from_amount * (rate_dict[fx.from_currency].rate_to_usd if fx.from_currency in rate_dict and rate_dict[fx.from_currency] else 1.0)
+        for fx in FXConversion.query.all()
+    )
+
+    return render_template(
+        'manager/fx_treasury.html',
+        holdings=currency_holdings,
+        total_fx_reserve_usd=total_fx_reserve_usd,
+        total_conversions_volume_usd=total_conversions_volume_usd,
+        conversions=recent_conversions,
+        rates=rates
+    )
+
+
+@manager_bp.route('/standing-orders')
+@manager_required
+def standing_orders():
+    status_filter = request.args.get('status', '').upper()
+    query = StandingOrder.query
+    if status_filter:
+        query = query.filter_by(status=status_filter)
+    all_orders = query.order_by(StandingOrder.created_at.desc()).all()
+
+    active_count = StandingOrder.query.filter_by(status='ACTIVE').count()
+    paused_count = StandingOrder.query.filter_by(status='PAUSED').count()
+    cancelled_count = StandingOrder.query.filter_by(status='CANCELLED').count()
+    total_active_volume = sum(so.amount for so in StandingOrder.query.filter_by(status='ACTIVE').all())
+
+    return render_template(
+        'manager/standing_orders.html',
+        orders=all_orders,
+        active_count=active_count,
+        paused_count=paused_count,
+        cancelled_count=cancelled_count,
+        total_active_volume=total_active_volume,
+        status_filter=status_filter
+    )
+
 
 
 

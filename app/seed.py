@@ -12,9 +12,12 @@ from app.models.card import Card
 from app.models.notification import Notification
 from app.models.fixed_deposit import FixedDeposit
 from app.models.ticket import SupportTicket
+from app.models.currency_rate import CurrencyRate
+from app.models.standing_order import StandingOrder
+from app.models.fx_conversion import FXConversion
 
 def seed_demo_data():
-    """Seed initial demo users, accounts, transactions, loans, cards, deposits, and tickets."""
+    """Seed initial demo users, accounts, transactions, loans, cards, deposits, tickets, FX and orders."""
     if not User.query.first():
         _seed_users_and_accounts()
 
@@ -23,6 +26,10 @@ def seed_demo_data():
     _seed_notifications()
     _seed_fixed_deposits()
     _seed_support_tickets()
+    _seed_currency_rates()
+    _seed_multi_currency_accounts()
+    _seed_standing_orders()
+    _seed_fx_conversions()
 
 def _seed_users_and_accounts():
     print("[*] Seeding initial demo users and banking records...")
@@ -389,4 +396,166 @@ def _seed_support_tickets():
         db.session.add_all([t1, t2])
         db.session.commit()
         print("[OK] Demo support tickets seeded successfully.")
+
+def _seed_currency_rates():
+    """Seed baseline institutional currency exchange rates and spreads."""
+    if CurrencyRate.query.first() is not None:
+        return
+
+    rates = [
+        CurrencyRate(currency_code='USD', currency_name='US Dollar', symbol='$', rate_to_usd=1.0000, spread_pct=0.0, is_active=True),
+        CurrencyRate(currency_code='EUR', currency_name='Euro', symbol='€', rate_to_usd=1.0850, spread_pct=0.8, is_active=True),
+        CurrencyRate(currency_code='GBP', currency_name='British Pound', symbol='£', rate_to_usd=1.2820, spread_pct=0.8, is_active=True),
+        CurrencyRate(currency_code='JPY', currency_name='Japanese Yen', symbol='¥', rate_to_usd=0.0065, spread_pct=0.9, is_active=True),
+        CurrencyRate(currency_code='CAD', currency_name='Canadian Dollar', symbol='CA$', rate_to_usd=0.7350, spread_pct=0.8, is_active=True),
+        CurrencyRate(currency_code='AUD', currency_name='Australian Dollar', symbol='A$', rate_to_usd=0.6550, spread_pct=0.8, is_active=True),
+        CurrencyRate(currency_code='CHF', currency_name='Swiss Franc', symbol='CHF', rate_to_usd=1.1200, spread_pct=0.8, is_active=True)
+    ]
+    db.session.add_all(rates)
+    db.session.commit()
+    print("[OK] Demo institutional FX currency rates seeded successfully.")
+
+def _seed_multi_currency_accounts():
+    """Seed demo customer EUR and GBP multi-currency accounts if they don't already exist."""
+    customer_user = User.query.filter_by(username='customer').first()
+    if not customer_user:
+        return
+
+    existing_currencies = [a.currency for a in customer_user.accounts]
+    now = datetime.utcnow()
+
+    if 'EUR' not in existing_currencies:
+        eur_acc = Account(
+            account_number='1000800008001',
+            user_id=customer_user.id,
+            account_type='savings',
+            balance=2400.00,
+            currency='EUR',
+            status='active',
+            created_at=now - timedelta(days=20)
+        )
+        db.session.add(eur_acc)
+
+    if 'GBP' not in existing_currencies:
+        gbp_acc = Account(
+            account_number='1000800008002',
+            user_id=customer_user.id,
+            account_type='checking',
+            balance=1650.00,
+            currency='GBP',
+            status='active',
+            created_at=now - timedelta(days=15)
+        )
+        db.session.add(gbp_acc)
+
+    db.session.commit()
+    print("[OK] Demo multi-currency accounts seeded successfully.")
+
+def _seed_standing_orders():
+    """Seed demo recurring standing orders and auto-pay mandates."""
+    if StandingOrder.query.first() is not None:
+        return
+
+    customer_user = User.query.filter_by(username='customer').first()
+    if customer_user and customer_user.accounts:
+        primary_acc = customer_user.accounts[0]
+        now = datetime.utcnow()
+
+        so1 = StandingOrder(
+            order_reference='SO-849201',
+            user_id=customer_user.id,
+            source_account_id=primary_acc.id,
+            title='Apartment Residential Lease Rent',
+            destination_type='EXTERNAL_BENEFICIARY',
+            destination_account='METRO-PROPERTIES-LLC',
+            amount=1200.00,
+            frequency='MONTHLY',
+            status='ACTIVE',
+            next_execution_date=now + timedelta(days=5),
+            last_execution_date=now - timedelta(days=25),
+            total_executions=3,
+            total_transferred=3600.00,
+            created_at=now - timedelta(days=90)
+        )
+
+        so2 = StandingOrder(
+            order_reference='SO-391084',
+            user_id=customer_user.id,
+            source_account_id=primary_acc.id,
+            title='High-Yield Emergency Reserve Allocation',
+            destination_type='INTERNAL_TRANSFER',
+            destination_account='1000200002000',
+            amount=250.00,
+            frequency='BI_WEEKLY',
+            status='ACTIVE',
+            next_execution_date=now + timedelta(days=2),
+            last_execution_date=now - timedelta(days=12),
+            total_executions=6,
+            total_transferred=1500.00,
+            created_at=now - timedelta(days=85)
+        )
+
+        so3 = StandingOrder(
+            order_reference='SO-719402',
+            user_id=customer_user.id,
+            source_account_id=primary_acc.id,
+            title='Cloud Infrastructure & Web Hosting',
+            destination_type='BILL_PAY',
+            destination_account='APEX-CLOUD-HOSTING',
+            amount=85.00,
+            frequency='MONTHLY',
+            status='PAUSED',
+            next_execution_date=now + timedelta(days=14),
+            last_execution_date=now - timedelta(days=45),
+            total_executions=2,
+            total_transferred=170.00,
+            created_at=now - timedelta(days=75)
+        )
+
+        db.session.add_all([so1, so2, so3])
+        db.session.commit()
+        print("[OK] Demo standing orders seeded successfully.")
+
+def _seed_fx_conversions():
+    """Seed demo foreign currency conversion audit history."""
+    if FXConversion.query.first() is not None:
+        return
+
+    customer_user = User.query.filter_by(username='customer').first()
+    if customer_user and len(customer_user.accounts) >= 2:
+        usd_acc = customer_user.accounts[0]
+        other_acc = customer_user.accounts[1]
+        now = datetime.utcnow()
+
+        fx1 = FXConversion(
+            reference_id='FX-92817402',
+            user_id=customer_user.id,
+            from_account_id=usd_acc.id,
+            to_account_id=other_acc.id,
+            from_currency='USD',
+            to_currency='EUR',
+            from_amount=1000.00,
+            to_amount=914.29,
+            exchange_rate=0.91429,
+            spread_fee=7.37,
+            created_at=now - timedelta(days=8)
+        )
+
+        fx2 = FXConversion(
+            reference_id='FX-41098234',
+            user_id=customer_user.id,
+            from_account_id=usd_acc.id,
+            to_account_id=other_acc.id,
+            from_currency='USD',
+            to_currency='GBP',
+            from_amount=500.00,
+            to_amount=387.16,
+            exchange_rate=0.77432,
+            spread_fee=3.12,
+            created_at=now - timedelta(days=3)
+        )
+
+        db.session.add_all([fx1, fx2])
+        db.session.commit()
+        print("[OK] Demo FX conversion history seeded successfully.")
 

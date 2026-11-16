@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block title %}Global FX Rates &amp; Spread Control - System Administration{% endblock %}
+
+{% block content %}
+<div class="py-4 bg-light min-vh-100">
+    <div class="container">
+        <!-- Top Banner -->
+        <div class="card border-0 shadow-sm rounded-4 bg-navy text-white mb-4 p-4 overflow-hidden position-relative">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 position-relative z-1">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="badge text-white px-3 py-1 rounded-pill fw-semibold" style="background-color: #7c3aed !important;">
+                            <i class="bi bi-shield-lock-fill me-1"></i> Executive Control
+                        </span>
+                        <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-25 px-3 py-1 rounded-pill small">
+                            Treasury Operations
+                        </span>
+                    </div>
+                    <h3 class="fw-bold text-white mb-1">Global FX Rates &amp; Institutional Spreads</h3>
+                    <p class="text-slate-300 mb-0 small">Control foreign exchange rates, configure institutional spread markups, and review global FX activity.</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-light rounded-pill px-3">
+                        <i class="bi bi-arrow-left me-1"></i> Executive Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-3 rounded-3 bg-primary-subtle text-primary">
+                            <i class="bi bi-currency-exchange fs-4"></i>
+                        </div>
+                        <div>
+                            <span class="text-muted small text-uppercase">Configured Currency Pairs</span>
+                            <h4 class="fw-bold text-navy-dark mb-0">{{ rates|length }} Currencies</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-3 rounded-3 bg-success-subtle text-success">
+                            <i class="bi bi-arrow-repeat fs-4"></i>
+                        </div>
+                        <div>
+                            <span class="text-muted small text-uppercase">Total Conversions Executed</span>
+                            <h4 class="fw-bold text-navy-dark mb-0">{{ total_conversions }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-3 rounded-3 bg-warning-subtle text-warning">
+                            <i class="bi bi-cash-coin fs-4"></i>
+                        </div>
+                        <div>
+                            <span class="text-muted small text-uppercase">Spread Fee Revenue</span>
+                            <h4 class="fw-bold text-navy-dark mb-0">${{ "{:,.2f}".format(total_spread_revenue) }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rates Table -->
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-5">
+            <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold text-navy-dark mb-0">
+                    <i class="bi bi-sliders text-primary me-2"></i>Live Institutional FX Rate Board
+                </h5>
+                <small class="text-muted">Real-time valuation vs base USD</small>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light small text-uppercase text-secondary">
+                        <tr>
+                            <th class="ps-4">Currency</th>
+                            <th>Symbol</th>
+                            <th>Rate to USD</th>
+                            <th>Inverse (1 USD =)</th>
+                            <th>Spread Fee (%)</th>
+                            <th>Active Status</th>
+                            <th>Last Updated</th>
+                            <th class="pe-4 text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in rates %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="fw-bold text-navy-dark">{{ r.currency_code }}</div>
+                                <small class="text-muted">{{ r.currency_name }}</small>
+                            </td>
+                            <td><span class="badge bg-light text-dark border font-monospace">{{ r.symbol }}</span></td>
+                            <td class="font-monospace fw-bold text-primary">${{ "{:,.4f}".format(r.rate_to_usd) }}</td>
+                            <td class="font-monospace text-muted small">
+                                {% if r.rate_to_usd > 0 %}
+                                    {{ "{:,.4f}".format(1.0 / r.rate_to_usd) }} {{ r.currency_code }}
+                                {% else %}
+                                    --
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle font-monospace px-3 py-1">
+                                    {{ r.spread_pct }}%
+                                </span>
+                            </td>
+                            <td>
+                                {% if r.is_active %}
+                                    <span class="badge bg-success text-white rounded-pill px-3 py-1">ACTIVE</span>
+                                {% else %}
+                                    <span class="badge bg-secondary text-white rounded-pill px-3 py-1">DISABLED</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-muted small">{{ r.updated_at.strftime('%Y-%m-%d %H:%M') if r.updated_at else 'Initial' }}</td>
+                            <td class="pe-4 text-end">
+                                <button class="btn btn-sm btn-outline-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#editRateModal{{ r.id }}">
+                                    <i class="bi bi-pencil me-1"></i> Edit
+                                </button>
+                            </td>
+                        </tr>
+
+                        <!-- Edit Rate Modal -->
+                        <div class="modal fade" id="editRateModal{{ r.id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content rounded-4 border-0 shadow">
+                                    <div class="modal-header bg-navy text-white p-4">
+                                        <h5 class="modal-title fw-bold">Update {{ r.currency_code }} Rate &amp; Spread</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <form action="{{ url_for('admin.update_fx_rate', rate_id=r.id) }}" method="POST">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+                                        <div class="modal-body p-4">
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-semibold text-secondary">Currency</label>
+                                                <input type="text" class="form-control rounded-3" value="{{ r.currency_code }} - {{ r.currency_name }}" disabled>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-semibold text-secondary">Exchange Rate to USD ($)</label>
+                                                <input type="number" step="0.0001" name="rate_to_usd" class="form-control rounded-3 font-monospace" value="{{ r.rate_to_usd }}" required>
+                                                <small class="text-muted">How many USD is 1 {{ r.currency_code }} worth?</small>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-semibold text-secondary">Institutional Spread Markup (%)</label>
+                                                <input type="number" step="0.01" name="spread_pct" class="form-control rounded-3 font-monospace" value="{{ r.spread_pct }}" min="0" max="20" required>
+                                                <small class="text-muted">Bank margin deducted during exchange operations.</small>
+                                            </div>
+                                            <div class="form-check form-switch mt-3">
+                                                <input class="form-check-input" type="checkbox" name="is_active" id="activeSwitch{{ r.id }}" {{ 'checked' if r.is_active }}>
+                                                <label class="form-check-label small fw-semibold text-secondary" for="activeSwitch{{ r.id }}">Active for customer trading</label>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer p-3 bg-light">
+                                            <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-navy text-white rounded-pill px-4">Save Changes</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Global FX Conversions Log -->
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-5">
+            <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold text-navy-dark mb-0">
+                    <i class="bi bi-clock-history text-purple me-2"></i>Global Foreign Currency Conversions Audit ({{ conversions|length }})
+                </h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light small text-uppercase text-secondary">
+                        <tr>
+                            <th class="ps-4">Reference</th>
+                            <th>Customer</th>
+                            <th>Sold</th>
+                            <th>Bought</th>
+                            <th>Rate Applied</th>
+                            <th>Spread Revenue</th>
+                            <th class="pe-4 text-end">Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if conversions %}
+                            {% for c in conversions %}
+                            <tr>
+                                <td class="ps-4 font-monospace text-primary fw-semibold small">{{ c.reference_id }}</td>
+                                <td>
+                                    <div class="fw-bold text-navy-dark">{{ c.user.full_name or c.user.username }}</div>
+                                    <small class="text-muted font-monospace">UID: #{{ c.user_id }}</small>
+                                </td>
+                                <td class="text-danger fw-semibold">
+                                    -{{ "{:,.2f}".format(c.from_amount) }} {{ c.from_currency }}
+                                </td>
+                                <td class="text-success fw-bold">
+                                    +{{ "{:,.2f}".format(c.to_amount) }} {{ c.to_currency }}
+                                </td>
+                                <td class="font-monospace small">1 {{ c.from_currency }} = {{ "{:,.4f}".format(c.exchange_rate) }} {{ c.to_currency }}</td>
+                                <td class="text-muted small font-monospace">+{{ "{:,.2f}".format(c.spread_fee) }} {{ c.to_currency }}</td>
+                                <td class="pe-4 text-end text-muted small">{{ c.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted">
+                                    <i class="bi bi-info-circle me-1"></i> No currency conversions logged in institutional records.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

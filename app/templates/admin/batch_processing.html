@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Batch Processing &amp; Automation Engine - System Administration{% endblock %}
+
+{% block content %}
+<div class="py-4 bg-light min-vh-100">
+    <div class="container">
+        <!-- Top Banner -->
+        <div class="card border-0 shadow-sm rounded-4 bg-navy text-white mb-4 p-4 overflow-hidden position-relative">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 position-relative z-1">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="badge text-white px-3 py-1 rounded-pill fw-semibold" style="background-color: #7c3aed !important;">
+                            <i class="bi bi-gear-wide-connected me-1"></i> Core Banking Operations
+                        </span>
+                        <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-25 px-3 py-1 rounded-pill small">
+                            Batch Engine Active
+                        </span>
+                    </div>
+                    <h3 class="fw-bold text-white mb-1">Institutional Batch Processing &amp; Automation Console</h3>
+                    <p class="text-slate-300 mb-0 small">Automated batch execution for scheduled standing orders, recurring mandates, and system reconciliations.</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-light rounded-pill px-3">
+                        <i class="bi bi-arrow-left me-1"></i> Executive Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3 col-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-4 border-primary">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-3 rounded-3 bg-primary-subtle text-primary">
+                            <i class="bi bi-clock-history fs-4"></i>
+                        </div>
+                        <div>
+                            <span class="text-muted small text-uppercase">Active Mandates</span>
+                            <h4 class="fw-bold text-navy-dark mb-0">{{ total_active }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-4 border-warning">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-3 rounded-3 bg-warning-subtle text-warning">
+                            <i class="bi bi-hourglass-split fs-4"></i>
+                        </div>
+                        <div>
+                            <span class="text-muted small text-uppercase">Due For Run Now</span>
+                            <h4 class="fw-bold text-navy-dark mb-0">{{ due_orders|length }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-4 border-success">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-3 rounded-3 bg-success-subtle text-success">
+                            <i class="bi bi-check-circle-fill fs-4"></i>
+                        </div>
+                        <div>
+                            <span class="text-muted small text-uppercase">Runs Executed</span>
+                            <h4 class="fw-bold text-navy-dark mb-0">{{ total_executions }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-4 border-info">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-3 rounded-3 bg-info-subtle text-info">
+                            <i class="bi bi-cash-stack fs-4"></i>
+                        </div>
+                        <div>
+                            <span class="text-muted small text-uppercase">Batch Volume Run</span>
+                            <h4 class="fw-bold text-navy-dark mb-0">${{ "{:,.2f}".format(total_volume_processed) }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manual Batch Trigger Banner -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h5 class="fw-bold text-navy-dark mb-1">
+                        <i class="bi bi-play-circle text-primary me-2"></i>Trigger Scheduled Batch Execution
+                    </h5>
+                    <p class="text-muted small mb-0">
+                        Process all pending standing order debits atomically. Accounts with sufficient balances will be debited and cryptographic ledger checksums generated.
+                    </p>
+                </div>
+                <div class="d-flex gap-2">
+                    <form method="POST" action="{{ url_for('admin.run_standing_orders_batch') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+                        <button type="submit" class="btn btn-navy text-white rounded-pill px-4 fw-semibold shadow-sm">
+                            <i class="bi bi-lightning-charge me-1"></i> Run Due Orders Batch ({{ due_orders|length }})
+                        </button>
+                    </form>
+                    <form method="POST" action="{{ url_for('admin.run_standing_orders_batch', force=1) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+                        <button type="submit" class="btn btn-outline-warning rounded-pill px-3 fw-semibold" title="Execute all active standing orders regardless of due date for testing">
+                            <i class="bi bi-arrow-clockwise me-1"></i> Force Run All Active
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Standing Orders Registry -->
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-5">
+            <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold text-navy-dark mb-0">
+                    <i class="bi bi-card-checklist text-purple me-2"></i>Institutional Mandate Queue ({{ all_orders|length }})
+                </h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light small text-uppercase text-secondary">
+                        <tr>
+                            <th class="ps-4">Reference</th>
+                            <th>Customer</th>
+                            <th>Mandate Title</th>
+                            <th>Funding Account</th>
+                            <th>Target Destination</th>
+                            <th>Amount</th>
+                            <th>Schedule &amp; Next Run</th>
+                            <th class="pe-4 text-end">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if all_orders %}
+                            {% for so in all_orders %}
+                            <tr>
+                                <td class="ps-4 font-monospace text-primary fw-bold small">{{ so.order_reference }}</td>
+                                <td>
+                                    <div class="fw-bold text-navy-dark">{{ so.user.full_name or so.user.username }}</div>
+                                    <small class="text-muted font-monospace">UID: #{{ so.user_id }}</small>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold text-dark">{{ so.title }}</div>
+                                    <small class="text-muted">{{ so.destination_type|replace('_', ' ')|title }}</small>
+                                </td>
+                                <td class="font-monospace small text-muted">
+                                    {{ so.source_account.currency }} #{{ so.source_account.account_number[-4:] }}
+                                </td>
+                                <td class="font-monospace small text-muted">{{ so.destination_account }}</td>
+                                <td>
+                                    <div class="fw-bold text-emerald">{{ so.source_account.symbol }}{{ "{:,.2f}".format(so.amount) }}</div>
+                                    <span class="badge bg-light text-dark border small">{{ so.frequency }}</span>
+                                </td>
+                                <td>
+                                    <div class="small fw-semibold {{ 'text-warning' if so.is_due else 'text-dark' }}">
+                                        {{ so.next_execution_date.strftime('%b %d, %Y') }}
+                                        {% if so.is_due %}
+                                            <span class="badge bg-warning text-dark small ms-1">DUE NOW</span>
+                                        {% endif %}
+                                    </div>
+                                    <small class="text-muted">Total: {{ so.total_executions }} run(s)</small>
+                                </td>
+                                <td class="pe-4 text-end">
+                                    {% if so.status == 'ACTIVE' %}
+                                        <span class="badge bg-success text-white rounded-pill px-3 py-1">ACTIVE</span>
+                                    {% elif so.status == 'PAUSED' %}
+                                        <span class="badge bg-warning text-dark rounded-pill px-3 py-1">PAUSED</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary text-white rounded-pill px-3 py-1">{{ so.status }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center py-4 text-muted">
+                                    <i class="bi bi-info-circle me-1"></i> No standing orders registered in the system.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

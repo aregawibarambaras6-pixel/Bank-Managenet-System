@@ -11,14 +11,22 @@ from app.models.card import Card
 from app.models.notification import Notification
 from app.models.fixed_deposit import FixedDeposit
 from app.models.ticket import SupportTicket
+from app.models.currency_rate import CurrencyRate
+from app.models.standing_order import StandingOrder
+from app.models.fx_conversion import FXConversion
 from app.forms.banking_forms import DepositForm, WithdrawForm, TransferForm, CreateAccountForm
 from app.forms.loan_forms import LoanApplicationForm, LOAN_TYPE_RATES
 from app.forms.card_forms import IssueCardForm, UpdateCardLimitForm, ChangeCardPinForm
 from app.forms.investment_forms import OpenDepositForm, DEPOSIT_PLANS
 from app.forms.support_forms import SupportTicketForm
+from app.forms.fx_forms import FXExchangeForm
+from app.forms.standing_order_forms import StandingOrderForm
 from app.utils.decorators import customer_required
 from app.utils.java_service import analyze_transaction_risk
-from app.utils.cpp_engine import calculate_compound_interest, calculate_loan_amortization, generate_ledger_hash
+from app.utils.cpp_engine import (
+    calculate_compound_interest, calculate_loan_amortization,
+    generate_ledger_hash, calculate_fx_conversion
+)
 from app.utils.sql_executor import log_fraud_audit, log_ledger_checksum
 
 banking_bp = Blueprint('banking', __name__)
@@ -324,12 +332,13 @@ def create_account():
         initial_deposit = float(form.initial_deposit.data)
         account_num = Account.generate_account_number()
         
+        selected_currency = form.currency.data if hasattr(form, 'currency') and form.currency.data else 'USD'
         new_account = Account(
             account_number=account_num,
             user_id=current_user.id,
             account_type=form.account_type.data,
             balance=initial_deposit,
-            currency='USD',
+            currency=selected_currency,
             status='active'
         )
         db.session.add(new_account)
@@ -343,7 +352,7 @@ def create_account():
                 transaction_type='deposit',
                 amount=initial_deposit,
                 balance_after=initial_deposit,
-                description='Opening Balance Deposit',
+                description=f'Opening Balance Deposit ({selected_currency})',
                 related_account='APEX-RESERVE-001'
             )
             db.session.add(txn)
@@ -355,7 +364,7 @@ def create_account():
         else:
             db.session.commit()
 
-        flash(f'New {new_account.account_type.title()} Account (#{account_num}) opened successfully with ${initial_deposit:,.2f}!', 'success')
+        flash(f'New {new_account.currency} {new_account.account_type.title()} Account (#{account_num}) opened successfully with {new_account.symbol}{initial_deposit:,.2f}!', 'success')
     else:
         for field, errors in form.errors.items():
             for error in errors:
@@ -1051,6 +1060,296 @@ def new_ticket():
 def view_ticket(ticket_id):
     ticket = SupportTicket.query.filter_by(id=ticket_id, user_id=current_user.id).first_or_404()
     return render_template('banking/view_ticket.html', ticket=ticket)
+
+
+# ──────────────────────────────────────────────
+# MULTI-CURRENCY & FOREIGN EXCHANGE (FX)
+# ──────────────────────────────────────────────
+@banking_bp.route('/fx')
+@customer_required
+def fx_exchange():
+    user_accounts = Account.query.filter_by(user_id=current_user.id, status='active').all()
+    rates = CurrencyRate.query.filter_by(is_active=True).all()
+    recent_conversions = FXConversion.query.filter_by(user_id=current_user.id).order_by(FXConversion.created_at.desc()).limit(15).all()
+
+    # Form setup
+    form = FXExchangeForm()
+    choices = [(a.id, f"{a.currency} - {a.account_number} ({a.symbol}{a.balance:,.2f})") for a in user_accounts]
+    form.source_account_id.choices = choices
+    form.destination_account_id.choices = choices
+
+    # Calculate portfolio valuation in USD
+    rate_map = {r.currency_code: r.rate_to_usd for r in rates}
+    rate_map['USD'] = 1.0
+    total_valuation_usd = sum(acc.balance * rate_map.get(acc.currency, 1.0) for acc in user_accounts)
+
+    return render_template(
+        'banking/fx.html',
+        accounts=user_accounts,
+        rates=rates,
+        recent_conversions=recent_conversions,
+        total_valuation_usd=total_valuation_usd,
+        form=form
+    )
+
+@banking_bp.route('/fx/exchange', methods=['POST'])
+@customer_required
+def execute_fx_exchange():
+    user_accounts = Account.query.filter_by(user_id=current_user.id, status='active').all()
+    form = FXExchangeForm()
+    choices = [(a.id, f"{a.currency} - {a.account_number}") for a in user_accounts]
+    form.source_account_id.choices = choices
+    form.destination_account_id.choices = choices
+
+    if form.validate_on_submit():
+        src_id = form.source_account_id.data
+        dst_id = form.destination_account_id.data
+        amount = float(form.amount.data)
+
+        if src_id == dst_id:
+            flash('Source and destination accounts must be different.', 'danger')
+            return redirect(url_for('banking.fx_exchange'))
+
+        src_acc = Account.query.filter_by(id=src_id, user_id=current_user.id, status='active').first()
+        dst_acc = Account.query.filter_by(id=dst_id, user_id=current_user.id, status='active').first()
+
+        if not src_acc or not dst_acc:
+            flash('Invalid account selection.', 'danger')
+            return redirect(url_for('banking.fx_exchange'))
+
+        if src_acc.balance < amount:
+            flash(f'Insufficient funds in source account. Available: {src_acc.symbol}{src_acc.balance:,.2f}', 'danger')
+            return redirect(url_for('banking.fx_exchange'))
+
+        # Fetch rates
+        from_rate = CurrencyRate.get_rate(src_acc.currency)
+        to_rate = CurrencyRate.get_rate(dst_acc.currency)
+        spread_pct = CurrencyRate.get_spread(dst_acc.currency)
+
+        # C++ Engine calculation
+        calc = calculate_fx_conversion(src_acc.currency, dst_acc.currency, amount, from_rate, to_rate, spread_pct)
+        to_amount = calc['to_amount']
+        spread_fee = calc['spread_fee']
+        effective_rate = calc['effective_rate']
+
+        # Atomic debit and credit
+        src_acc.balance -= amount
+        dst_acc.balance += to_amount
+
+        # Unique reference
+        fx_ref = FXConversion.generate_reference()
+
+        # Ledger transactions
+        txn_sell = Transaction(
+            reference_id=f"TXN-{fx_ref}-SELL",
+            account_id=src_acc.id,
+            transaction_type='transfer_out',
+            amount=amount,
+            balance_after=src_acc.balance,
+            description=f"FX Sold {amount:,.2f} {src_acc.currency} -> Received {to_amount:,.2f} {dst_acc.currency} @ {effective_rate:.4f}",
+            related_account=dst_acc.account_number
+        )
+        txn_buy = Transaction(
+            reference_id=f"TXN-{fx_ref}-BUY",
+            account_id=dst_acc.id,
+            transaction_type='transfer_in',
+            amount=to_amount,
+            balance_after=dst_acc.balance,
+            description=f"FX Converted from {amount:,.2f} {src_acc.currency} (Fee: {spread_fee:,.2f} {dst_acc.currency})",
+            related_account=src_acc.account_number
+        )
+
+        fx_record = FXConversion(
+            reference_id=fx_ref,
+            user_id=current_user.id,
+            from_account_id=src_acc.id,
+            to_account_id=dst_acc.id,
+            from_currency=src_acc.currency,
+            to_currency=dst_acc.currency,
+            from_amount=amount,
+            to_amount=to_amount,
+            exchange_rate=effective_rate,
+            spread_fee=spread_fee
+        )
+
+        notif = Notification(
+            user_id=current_user.id,
+            title='Foreign Exchange Complete',
+            message=f"Converted {src_acc.symbol}{amount:,.2f} {src_acc.currency} to {dst_acc.symbol}{to_amount:,.2f} {dst_acc.currency} (#{fx_ref}).",
+            category='success'
+        )
+
+        db.session.add_all([txn_sell, txn_buy, fx_record, notif])
+        db.session.commit()
+
+        # C++ cryptographic checksum
+        hash_res = generate_ledger_hash(fx_ref, src_acc.account_number, dst_acc.account_number, amount, str(datetime.utcnow()))
+        log_ledger_checksum(fx_ref, hash_res.get('ledger_hash', ''))
+
+        flash(f"Foreign exchange executed! Successfully converted {src_acc.symbol}{amount:,.2f} {src_acc.currency} into {dst_acc.symbol}{to_amount:,.2f} {dst_acc.currency} (Ref: {fx_ref}).", 'success')
+        return redirect(url_for('banking.fx_exchange'))
+    else:
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f"FX Error: {error}", 'danger')
+        return redirect(url_for('banking.fx_exchange'))
+
+@banking_bp.route('/api/fx/quote', methods=['POST'])
+@customer_required
+def api_fx_quote():
+    data = request.get_json() or {}
+    try:
+        from_cur = data.get('from_currency', 'USD').upper()
+        to_cur = data.get('to_currency', 'EUR').upper()
+        amount = float(data.get('amount', 100.0))
+
+        from_rate = CurrencyRate.get_rate(from_cur)
+        to_rate = CurrencyRate.get_rate(to_cur)
+        spread_pct = CurrencyRate.get_spread(to_cur)
+
+        result = calculate_fx_conversion(from_cur, to_cur, amount, from_rate, to_rate, spread_pct)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+
+# ──────────────────────────────────────────────
+# RECURRING STANDING ORDERS & AUTO-PAY
+# ──────────────────────────────────────────────
+@banking_bp.route('/standing-orders')
+@customer_required
+def standing_orders():
+    user_orders = StandingOrder.query.filter_by(user_id=current_user.id).order_by(StandingOrder.created_at.desc()).all()
+    user_accounts = Account.query.filter_by(user_id=current_user.id, status='active').all()
+
+    form = StandingOrderForm()
+    form.source_account_id.choices = [(a.id, f"{a.currency} - {a.account_number} ({a.symbol}{a.balance:,.2f})") for a in user_accounts]
+
+    total_active_monthly = sum(so.amount for so in user_orders if so.status == 'ACTIVE')
+
+    return render_template(
+        'banking/standing_orders.html',
+        standing_orders=user_orders,
+        accounts=user_accounts,
+        total_active_monthly=total_active_monthly,
+        form=form
+    )
+
+@banking_bp.route('/standing-orders/new', methods=['POST'])
+@customer_required
+def create_standing_order():
+    user_accounts = Account.query.filter_by(user_id=current_user.id, status='active').all()
+    form = StandingOrderForm()
+    form.source_account_id.choices = [(a.id, f"{a.currency} - {a.account_number}") for a in user_accounts]
+
+    if form.validate_on_submit():
+        src_acc = Account.query.filter_by(id=form.source_account_id.data, user_id=current_user.id).first()
+        if not src_acc:
+            flash('Invalid source account.', 'danger')
+            return redirect(url_for('banking.standing_orders'))
+
+        ref = StandingOrder.generate_reference()
+        order = StandingOrder(
+            order_reference=ref,
+            user_id=current_user.id,
+            source_account_id=src_acc.id,
+            title=form.title.data.strip(),
+            destination_type=form.destination_type.data,
+            destination_account=form.destination_account.data.strip(),
+            amount=float(form.amount.data),
+            frequency=form.frequency.data,
+            status='ACTIVE',
+            next_execution_date=datetime.utcnow() + timedelta(days=1)
+        )
+
+        notif = Notification(
+            user_id=current_user.id,
+            title='Standing Order Mandate Created',
+            message=f"Mandate #{ref} ({order.title}) activated for {src_acc.symbol}{order.amount:,.2f} ({order.frequency}).",
+            category='info'
+        )
+
+        db.session.add(order)
+        db.session.add(notif)
+        db.session.commit()
+
+        flash(f"Standing Order #{ref} activated successfully! Scheduled for recurring auto-execution.", 'success')
+        return redirect(url_for('banking.standing_orders'))
+    else:
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f"Standing Order Error: {error}", 'danger')
+        return redirect(url_for('banking.standing_orders'))
+
+@banking_bp.route('/standing-orders/<int:order_id>/toggle', methods=['POST'])
+@customer_required
+def toggle_standing_order(order_id):
+    order = StandingOrder.query.filter_by(id=order_id, user_id=current_user.id).first_or_404()
+    if order.status == 'ACTIVE':
+        order.status = 'PAUSED'
+        flash(f"Standing Order #{order.order_reference} has been paused.", 'warning')
+    elif order.status == 'PAUSED':
+        order.status = 'ACTIVE'
+        order.next_execution_date = order.calculate_next_date()
+        flash(f"Standing Order #{order.order_reference} has been resumed.", 'success')
+    db.session.commit()
+    return redirect(url_for('banking.standing_orders'))
+
+@banking_bp.route('/standing-orders/<int:order_id>/cancel', methods=['POST'])
+@customer_required
+def cancel_standing_order(order_id):
+    order = StandingOrder.query.filter_by(id=order_id, user_id=current_user.id).first_or_404()
+    order.status = 'CANCELLED'
+    db.session.commit()
+    flash(f"Standing Order #{order.order_reference} has been permanently cancelled.", 'info')
+    return redirect(url_for('banking.standing_orders'))
+
+@banking_bp.route('/standing-orders/<int:order_id>/execute-now', methods=['POST'])
+@customer_required
+def execute_standing_order_now(order_id):
+    order = StandingOrder.query.filter_by(id=order_id, user_id=current_user.id).first_or_404()
+    if order.status != 'ACTIVE':
+        flash('Only active standing orders can be executed.', 'warning')
+        return redirect(url_for('banking.standing_orders'))
+
+    src = order.source_account
+    if src.balance < order.amount:
+        flash(f"Execution failed: Insufficient funds in account #{src.account_number} (Available: {src.symbol}{src.balance:,.2f}).", 'danger')
+        return redirect(url_for('banking.standing_orders'))
+
+    # Deduct funds
+    src.balance -= order.amount
+    order.total_executions += 1
+    order.total_transferred += order.amount
+    order.last_execution_date = datetime.utcnow()
+    order.next_execution_date = order.calculate_next_date(order.last_execution_date)
+
+    tx_ref = Transaction.generate_reference()
+    txn = Transaction(
+        reference_id=tx_ref,
+        account_id=src.id,
+        transaction_type='transfer_out',
+        amount=order.amount,
+        balance_after=src.balance,
+        description=f"Auto-Pay Standing Order [{order.order_reference}]: {order.title}",
+        related_account=order.destination_account
+    )
+
+    notif = Notification(
+        user_id=current_user.id,
+        title='Standing Order Executed',
+        message=f"Mandate {order.order_reference} executed. {src.symbol}{order.amount:,.2f} transferred to {order.destination_account}.",
+        category='success'
+    )
+
+    db.session.add_all([txn, notif])
+    db.session.commit()
+
+    hash_res = generate_ledger_hash(tx_ref, src.account_number, order.destination_account, order.amount, str(txn.timestamp))
+    log_ledger_checksum(tx_ref, hash_res.get('ledger_hash', ''))
+
+    flash(f"Standing Order #{order.order_reference} executed successfully! Debited {src.symbol}{order.amount:,.2f}.", 'success')
+    return redirect(url_for('banking.standing_orders'))
 
 
 

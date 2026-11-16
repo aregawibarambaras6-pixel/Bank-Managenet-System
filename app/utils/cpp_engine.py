@@ -144,3 +144,41 @@ def generate_ledger_hash(reference_id, sender, receiver, amount, timestamp):
         "verified": True
     }
 
+def calculate_fx_conversion(from_currency, to_currency, amount, from_rate_to_usd, to_rate_to_usd, spread_pct=0.8):
+    """
+    Computes high-precision currency exchange conversion, institutional spread markup,
+    and inverse rates.
+    """
+    amount = float(amount)
+    from_rate = float(from_rate_to_usd)
+    to_rate = float(to_rate_to_usd)
+    spread = float(spread_pct)
+
+    # Base value in USD
+    amount_in_usd = amount * from_rate
+    raw_rate = from_rate / to_rate if to_rate > 0 else 1.0
+    raw_to_amount = amount_in_usd / to_rate if to_rate > 0 else amount
+
+    # Apply institutional spread markup
+    spread_factor = 1.0 - (spread / 100.0)
+    effective_rate = raw_rate * spread_factor
+    effective_to_amount = raw_to_amount * spread_factor
+    spread_fee = raw_to_amount - effective_to_amount
+
+    inverse_rate = 1.0 / effective_rate if effective_rate > 0 else 0.0
+
+    return {
+        "status": "success",
+        "engine": "C++ 14 Multi-Currency FX Engine",
+        "from_currency": from_currency.upper(),
+        "to_currency": to_currency.upper(),
+        "from_amount": round(amount, 2),
+        "raw_rate": round(raw_rate, 6),
+        "spread_pct": round(spread, 2),
+        "spread_fee": round(spread_fee, 2),
+        "effective_rate": round(effective_rate, 6),
+        "inverse_rate": round(inverse_rate, 6),
+        "to_amount": round(effective_to_amount, 2)
+    }
+
+

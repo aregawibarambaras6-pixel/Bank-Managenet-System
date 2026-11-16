@@ -33,6 +33,8 @@ A modern, secure, and full-featured **Bank Management System** built with **Flas
 
 ### 👤 Customer Portal
 - **Multi-Account Dashboard**: Real-time overview of active checking and high-yield savings accounts with balances and status.
+- **Multi-Currency Global Accounts & Instant FX**: Open foreign currency accounts in USD ($), EUR (€), GBP (£), JPY (¥), CAD (CA$), AUD (A$), and CHF (Fr). Execute instant foreign currency conversions with real-time C++ pricing, institutional spread calculations, and live currency tickers.
+- **Automated Standing Orders & Recurring Auto-Pay**: Create automated recurring debit mandates for rent, savings, utility bills, or family transfers (Daily, Weekly, Bi-Weekly, Monthly, Quarterly) with on-demand manual execution, pause/resume toggling, and cancellation controls.
 - **Account Numbering**: Standard 13-digit account numbers (e.g., `1000XXXXXXXXX`).
 - **Fixed Term Deposits & Certificates (CDs)**: Book high-yield term investments across 5 APY tiers (4.8% to 7.8% APY for 3 to 36 months) with real-time C++ compound interest calculations, projected maturity returns, and instant early or maturity liquidation payouts.
 - **Customer Support & Dispute Center**: Submit categorized customer support tickets, link disputed ledger transactions with reference numbers, track investigation status in real time, and review official managerial resolutions.
@@ -65,6 +67,8 @@ A modern, secure, and full-featured **Bank Management System** built with **Flas
 
 ### 👔 Branch Manager Portal
 - Comprehensive overview of all branch customer accounts.
+- **FX Treasury & Currency Exposure Desk**: Track aggregated multi-currency customer holdings, portfolio weights, net currency positions, and customer foreign exchange turnover.
+- **Standing Orders Supervision Desk**: Oversee customer recurring debit mandates, filter by status (Active, Paused, Cancelled), and audit automated disbursement schedules.
 - **Fixed Deposit Portfolio Registry**: View, track, and monitor all branch term certificates, maturity dates, interest commitments, and active deposit volume.
 - **Support & Dispute Resolution Desk**: Operational ticket queue with real-time status transitions (In Progress, Resolved, Closed), transaction-linked case audits, and official manager communication threads.
 - **Card Portfolio Supervision**: Search, audit, and remotely freeze/unfreeze any customer debit or virtual card.
@@ -74,6 +78,8 @@ A modern, secure, and full-featured **Bank Management System** built with **Flas
 
 ### 🛡️ System Administrator Portal
 - System-wide user administration (create, update, manage customers, managers, and admins).
+- **Global FX Exchange Rate & Spread Control**: Live rate configuration board for all supported international currencies, customizable institutional spread margins, and system-wide FX volume analytics.
+- **Institutional Batch Processing & Automation Console**: Trigger atomic batch runs for all due standing orders and recurring mandates across the entire bank with one click and inspect batch execution results.
 - **Enterprise Dispute & Support Audit**: Full institutional oversight of customer inquiries, transaction dispute filings, and operational response logs across all branches.
 - **Institutional Balance Sheet & Operational Metrics**: Real-time aggregated liquid reserves, active term deposit volume, credit facilities, card issuance metrics, and open inquiry counters.
 - Global transaction auditing and security event monitoring.

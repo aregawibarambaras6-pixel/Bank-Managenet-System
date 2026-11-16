@@ -45,5 +45,18 @@ class Account(db.Model):
         self.balance -= amount
         return self.balance
 
+    @property
+    def symbol(self):
+        symbols = {
+            'USD': '$',
+            'EUR': '€',
+            'GBP': '£',
+            'JPY': '¥',
+            'CAD': 'CA$',
+            'AUD': 'A$',
+            'CHF': 'CHF'
+        }
+        return symbols.get(self.currency, '$')
+
     def __repr__(self):
-        return f'<Account {self.account_number} ({self.account_type}) - ${self.balance:,.2f}>'
+        return f'<Account {self.account_number} ({self.account_type} - {self.currency}) - {self.symbol}{self.balance:,.2f}>'

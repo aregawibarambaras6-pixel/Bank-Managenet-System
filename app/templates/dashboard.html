@@ -48,6 +48,12 @@
                                 <a href="{{ url_for('banking.deposits') }}" class="btn btn-sm btn-outline-light rounded-pill px-3 fw-semibold">
                                     <i class="bi bi-safe me-1 text-warning"></i> Deposits
                                 </a>
+                                <a href="{{ url_for('banking.fx_exchange') }}" class="btn btn-sm btn-outline-light rounded-pill px-3 fw-semibold">
+                                    <i class="bi bi-globe-americas me-1 text-info"></i> FX
+                                </a>
+                                <a href="{{ url_for('banking.standing_orders') }}" class="btn btn-sm btn-outline-light rounded-pill px-3 fw-semibold">
+                                    <i class="bi bi-arrow-repeat me-1 text-success"></i> Auto-Pay
+                                </a>
                                 <a href="{{ url_for('banking.loans') }}" class="btn btn-sm btn-info rounded-pill px-3 text-dark fw-semibold">
                                     <i class="bi bi-bank me-1"></i> Loans
                                 </a>
@@ -596,6 +602,12 @@
                         <label class="form-label small fw-semibold text-muted">Product Type</label>
                         {{ new_account_form.account_type(class="form-select") }}
                     </div>
+                    {% if new_account_form.currency %}
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Account Base Currency</label>
+                        {{ new_account_form.currency(class="form-select") }}
+                    </div>
+                    {% endif %}
                     <div class="mb-3">
                         <label class="form-label small fw-semibold text-muted">Starting Deposit ($)</label>
                         {{ new_account_form.initial_deposit(class="form-control", placeholder="100.00", min="25") }}

@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Branch FX Treasury & Exposure Desk - Apex Bank{% endblock %}
+
+{% block content %}
+<div class="py-4 bg-light min-vh-100">
+    <div class="container">
+        <!-- Top Banner -->
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1 small">
+                        <li class="breadcrumb-item"><a href="{{ url_for('manager.dashboard') }}" class="text-decoration-none">Manager Portal</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">FX Treasury</li>
+                    </ol>
+                </nav>
+                <h2 class="h3 fw-bold text-navy-dark mb-0">
+                    <i class="bi bi-globe-americas text-warning me-2"></i>Branch Foreign Exchange Treasury &amp; Exposure Desk
+                </h2>
+                <p class="text-muted small mb-0">Institutional multi-currency reserve monitoring, liquidity allocations, and customer FX turnover.</p>
+            </div>
+            <div>
+                <a href="{{ url_for('manager.dashboard') }}" class="btn btn-outline-secondary rounded-pill px-3">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-3 border-start border-4 border-primary h-100 bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted small text-uppercase fw-semibold">Total Reserves (USD Equiv)</span>
+                            <h3 class="fw-bold text-navy-dark mb-0 mt-1">${{ "{:,.2f}".format(total_fx_reserve_usd) }}</h3>
+                            <small class="text-primary"><i class="bi bi-bank me-1"></i>All multi-currency accounts</small>
+                        </div>
+                        <div class="rounded-circle bg-primary-subtle p-3 text-primary">
+                            <i class="bi bi-safe fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-3 border-start border-4 border-success h-100 bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted small text-uppercase fw-semibold">Branch FX Turnover</span>
+                            <h3 class="fw-bold text-navy-dark mb-0 mt-1">${{ "{:,.2f}".format(total_conversions_volume_usd) }}</h3>
+                            <small class="text-success"><i class="bi bi-arrow-repeat me-1"></i>Cumulative conversions</small>
+                        </div>
+                        <div class="rounded-circle bg-success-subtle text-success">
+                            <i class="bi bi-graph-up fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-3 border-start border-4 border-warning h-100 bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted small text-uppercase fw-semibold">Active Currency Books</span>
+                            <h3 class="fw-bold text-navy-dark mb-0 mt-1">{{ holdings.keys()|length }} Currencies</h3>
+                            <small class="text-warning"><i class="bi bi-layers-fill me-1"></i>Diversified asset base</small>
+                        </div>
+                        <div class="rounded-circle bg-warning-subtle text-warning">
+                            <i class="bi bi-cash-coin fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Currency Exposure Breakdown Table -->
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-5">
+            <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold text-navy-dark mb-0">
+                    <i class="bi bi-pie-chart text-emerald me-2"></i>Currency Reserve Exposures &amp; Position Weights
+                </h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light small text-uppercase text-secondary">
+                        <tr>
+                            <th class="ps-4">Currency</th>
+                            <th>Active Wallets</th>
+                            <th>Total Raw Holdings</th>
+                            <th>USD Equivalent</th>
+                            <th>Portfolio Allocation</th>
+                            <th class="pe-4 text-end">Rate vs USD</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c, d in holdings.items() %}
+                        <tr>
+                            <td class="ps-4">
+                                <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-1 rounded-pill">
+                                    {{ c }}
+                                </span>
+                            </td>
+                            <td><span class="badge bg-light text-dark border">{{ d.account_count }} Accounts</span></td>
+                            <td class="fw-bold text-dark font-monospace">{{ d.symbol }}{{ "{:,.2f}".format(d.total_balance) }}</td>
+                            <td class="font-monospace fw-semibold text-primary">${{ "{:,.2f}".format(d.usd_equivalent) }}</td>
+                            <td style="min-width: 180px;">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="progress flex-grow-1" style="height: 8px;">
+                                        <div class="progress-bar bg-success" role="progressbar" data-width="{{ '%.1f'|format(d.portfolio_weight) }}"></div>
+                                    </div>
+                                    <small class="font-monospace fw-semibold text-secondary">{{ "%.1f"|format(d.portfolio_weight) }}%</small>
+                                </div>
+                            </td>
+                            <td class="pe-4 text-end font-monospace small">
+                                1 {{ c }} = ${{ "{:,.4f}".format(d.rate_to_usd) }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent Branch FX Conversions Audit -->
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-5">
+            <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold text-navy-dark mb-0">
+                    <i class="bi bi-journal-check text-primary me-2"></i>Customer FX Conversion Audit Stream ({{ conversions|length }})
+                </h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light small text-uppercase text-secondary">
+                        <tr>
+                            <th class="ps-4">Reference</th>
+                            <th>Account Holder</th>
+                            <th>Sold</th>
+                            <th>Bought</th>
+                            <th>Applied Rate</th>
+                            <th>Spread Revenue</th>
+                            <th class="pe-4 text-end">Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if conversions %}
+                            {% for c in conversions %}
+                            <tr>
+                                <td class="ps-4 font-monospace text-primary fw-semibold small">{{ c.reference_id }}</td>
+                                <td>
+                                    <div class="fw-bold text-navy-dark">{{ c.user.full_name or c.user.username }}</div>
+                                    <small class="text-muted font-monospace">UID: #{{ c.user_id }}</small>
+                                </td>
+                                <td class="text-danger fw-semibold">
+                                    -{{ "{:,.2f}".format(c.from_amount) }} {{ c.from_currency }}
+                                </td>
+                                <td class="text-success fw-bold">
+                                    +{{ "{:,.2f}".format(c.to_amount) }} {{ c.to_currency }}
+                                </td>
+                                <td class="font-monospace small">1 {{ c.from_currency }} = {{ "{:,.4f}".format(c.exchange_rate) }} {{ c.to_currency }}</td>
+                                <td class="text-muted small font-monospace">+{{ "{:,.2f}".format(c.spread_fee) }} {{ c.to_currency }}</td>
+                                <td class="pe-4 text-end text-muted small">{{ c.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted">
+                                    <i class="bi bi-info-circle me-1"></i> No foreign currency conversions logged in branch ledger.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('[data-width]').forEach(function(el) {
+        el.style.width = el.getAttribute('data-width') + '%';
+    });
+});
+</script>
+{% endblock %}

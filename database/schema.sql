@@ -174,6 +174,58 @@ CREATE TABLE IF NOT EXISTS support_tickets (
     FOREIGN KEY (assigned_manager_id) REFERENCES users (id) ON DELETE SET NULL
 );
 
+-- 12. Currency Exchange Rates & Spreads Table
+CREATE TABLE IF NOT EXISTS currency_rates (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    currency_code VARCHAR(5) NOT NULL UNIQUE,
+    currency_name VARCHAR(50) NOT NULL,
+    symbol VARCHAR(10) NOT NULL DEFAULT '$',
+    rate_to_usd DECIMAL(10, 4) NOT NULL DEFAULT 1.0000,
+    spread_pct DECIMAL(5, 2) NOT NULL DEFAULT 0.80,
+    is_active BOOLEAN NOT NULL DEFAULT 1,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 13. Standing Orders & Recurring Payments Table
+CREATE TABLE IF NOT EXISTS standing_orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    order_reference VARCHAR(24) NOT NULL UNIQUE,
+    user_id INTEGER NOT NULL,
+    source_account_id INTEGER NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    destination_type VARCHAR(30) NOT NULL DEFAULT 'INTERNAL_TRANSFER',
+    destination_account VARCHAR(50) NOT NULL,
+    amount DECIMAL(15, 2) NOT NULL,
+    frequency VARCHAR(20) NOT NULL DEFAULT 'MONTHLY', -- 'DAILY', 'WEEKLY', 'BI_WEEKLY', 'MONTHLY', 'QUARTERLY'
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE', -- 'ACTIVE', 'PAUSED', 'CANCELLED', 'COMPLETED'
+    next_execution_date TIMESTAMP NOT NULL,
+    last_execution_date TIMESTAMP,
+    total_executions INTEGER NOT NULL DEFAULT 0,
+    total_transferred DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (source_account_id) REFERENCES accounts (id) ON DELETE CASCADE
+);
+
+-- 14. Foreign Exchange Conversions Audit Table
+CREATE TABLE IF NOT EXISTS fx_conversions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    reference_id VARCHAR(32) NOT NULL UNIQUE,
+    user_id INTEGER NOT NULL,
+    from_account_id INTEGER NOT NULL,
+    to_account_id INTEGER NOT NULL,
+    from_currency VARCHAR(5) NOT NULL,
+    to_currency VARCHAR(5) NOT NULL,
+    from_amount DECIMAL(15, 2) NOT NULL,
+    to_amount DECIMAL(15, 2) NOT NULL,
+    exchange_rate DECIMAL(10, 6) NOT NULL,
+    spread_fee DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (from_account_id) REFERENCES accounts (id) ON DELETE CASCADE,
+    FOREIGN KEY (to_account_id) REFERENCES accounts (id) ON DELETE CASCADE
+);
+
 -- Indices for High Performance Queries
 CREATE INDEX IF NOT EXISTS idx_users_username ON users (username);
 CREATE INDEX IF NOT EXISTS idx_accounts_number ON accounts (account_number);
@@ -195,4 +247,10 @@ CREATE INDEX IF NOT EXISTS idx_fd_status ON fixed_deposits (status);
 CREATE INDEX IF NOT EXISTS idx_tickets_number ON support_tickets (ticket_number);
 CREATE INDEX IF NOT EXISTS idx_tickets_user ON support_tickets (user_id);
 CREATE INDEX IF NOT EXISTS idx_tickets_status ON support_tickets (status);
+CREATE INDEX IF NOT EXISTS idx_currency_code ON currency_rates (currency_code);
+CREATE INDEX IF NOT EXISTS idx_so_reference ON standing_orders (order_reference);
+CREATE INDEX IF NOT EXISTS idx_so_user ON standing_orders (user_id);
+CREATE INDEX IF NOT EXISTS idx_so_status ON standing_orders (status);
+CREATE INDEX IF NOT EXISTS idx_fx_reference ON fx_conversions (reference_id);
+CREATE INDEX IF NOT EXISTS idx_fx_user ON fx_conversions (user_id);
 

@@ -78,6 +78,16 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link text-white fw-semibold" href="{{ url_for('banking.fx_exchange') }}">
+                                    <i class="bi bi-globe-americas me-1 text-primary"></i> FX &amp; Currencies
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-white fw-semibold" href="{{ url_for('banking.standing_orders') }}">
+                                    <i class="bi bi-arrow-repeat me-1 text-success"></i> Auto-Pay
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link" href="{{ url_for('banking.transactions') }}">
                                     <i class="bi bi-journal-text me-1"></i> Ledger
                                 </a>
@@ -119,6 +129,16 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link text-warning fw-semibold" href="{{ url_for('manager.fx_treasury') }}">
+                                    <i class="bi bi-globe-americas me-1 text-primary"></i> FX Treasury
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-warning fw-semibold" href="{{ url_for('manager.standing_orders') }}">
+                                    <i class="bi bi-arrow-repeat me-1 text-info"></i> Auto-Pay
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link text-warning fw-semibold" href="{{ url_for('manager.tickets') }}">
                                     <i class="bi bi-headset me-1 text-danger"></i> Support Desk
                                 </a>
@@ -135,8 +155,18 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link text-warning fw-semibold" href="{{ url_for('admin.fx_rates') }}">
+                                    <i class="bi bi-sliders me-1"></i> FX Rates
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-success fw-semibold" href="{{ url_for('admin.batch_processing') }}">
+                                    <i class="bi bi-gear-wide-connected me-1"></i> Batch Automation
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link text-info fw-semibold" href="{{ url_for('admin.tickets') }}">
-                                    <i class="bi bi-shield-check me-1"></i> Compliance & Disputes
+                                    <i class="bi bi-shield-check me-1"></i> Compliance &amp; Disputes
                                 </a>
                             </li>
                         {% endif %}
